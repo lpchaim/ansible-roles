@@ -1,0 +1,22 @@
+---
+- tags:
+    - shell
+    - zsh
+  block:
+    - name: Install zsh
+      become: true
+      ansible.builtin.package:
+        name: zsh
+        state: present
+    - ansible.builtin.debug:
+        msg: "{{ ansible_env.SHELL }}"
+    - name: Make zsh default shell
+      become: true
+      ansible.builtin.shell:
+        cmd: usermod --shell $(which zsh) {{ ansible_env.USER }}
+      register: default_shell
+      changed_when: "'no changes' not in default_shell.stdout"
+    - name: Create dummy zsh history
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.zsh_history"
+        state: file
