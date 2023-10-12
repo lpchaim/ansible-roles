@@ -1,0 +1,6 @@
+- name: Apply home-manager customizations
+  listen: home_manager_switch
+  environment:
+    PATH: "{{ env_path }}"
+  ansible.builtin.command:
+    cmd: home-manager switch

@@ -1,0 +1,13 @@
+editor: vim
+git_name: ''
+git_email: ''
+modules:
+  - editors
+  - essentials
+  - git
+  - mcfly
+  - nushell
+  - starship
+  - tealdeer
+  - zoxide
+  - zsh

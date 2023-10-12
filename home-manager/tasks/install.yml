@@ -1,0 +1,10 @@
+---
+- name: Add home-manager channel
+  ansible.builtin.command:
+    cmd: nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+- name: Update nix channels
+  ansible.builtin.command:
+    cmd: nix-channel --update
+- name: Install home-mananger
+  ansible.builtin.command:
+    cmd: nix-shell '<home-manager>' -A install
