@@ -1,5 +1,7 @@
 ---
-- tags: flatpak
+- tags:
+    - app
+    - flatpak
   block:
   - name: Ensure default remote is setup
     community.general.flatpak_remote:
