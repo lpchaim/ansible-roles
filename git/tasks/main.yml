@@ -1,14 +1,22 @@
 ---
 - name: Setup git
-  tags: git
+  tags:
+    - git
   block:
-  - name: Configure git name
-    git_config:
-      name: user.name
-      scope: global
-      value: "{{ secret_fullname }}"
-  - name: Configure git email
-    git_config:
-      name: user.email
-      scope: global
-      value: "{{ secret_email }}"
+    - name: Ensure git is installed
+      become: true
+      ansible.builtin.package:
+        name: git
+        state: present
+    - name: Configure git name
+      when: git_name | length > 0
+      community.general.git_config:
+        name: user.name
+        scope: global
+        value: "{{ git_name }}"
+    - name: Configure git email
+      when: git_email | length > 0
+      community.general.git_config:
+        name: user.email
+        scope: global
+        value: "{{ git_email }}"
