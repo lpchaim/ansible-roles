@@ -3,6 +3,7 @@
   home.packages = with pkgs; [
     btop
     cheat
+    curl
     du-dust
     duf
     fd
@@ -15,6 +16,8 @@
         "SourceCodePro"
       ];
     })
+    rsync
+    wget
   ];
 
   programs = {
