@@ -1,0 +1,41 @@
+---
+- tags: keypair
+  block:
+    - name: Add {{ key_name }} public key
+      ansible.builtin.template:
+        src: public.j2
+        dest: "~/.ssh/{{ key_name }}.pub"
+        mode: "644"
+    - name: Add {{ key_name }} private key
+      ansible.builtin.template:
+        src: private.j2
+        dest: "~/.ssh/{{ key_name }}"
+        mode: "600"
+    - tags:
+        - config
+        - host
+      block:
+        - name: Ensure config file exists
+          when: key_host | length > 0
+          ansible.builtin.template:
+            src: config.j2
+            dest: "{{ ansible_env.HOME }}/.ssh/config"
+            mode: "600"
+            owner: "{{ ansible_env.USER }}"
+            group: "{{ ansible_env.USER }}"
+        - name: Ensure config directory exists
+          when: key_host | length > 0
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/.ssh/config.d"
+            state: directory
+            owner: "{{ ansible_env.USER }}"
+            group: "{{ ansible_env.USER }}"
+        - name: Setup {{ key_name }} config file
+          when: key_host | length > 0
+          ansible.builtin.template:
+            src: hostconfig.j2
+            dest: "{{ ansible_env.HOME }}/.ssh/config.d/{{ key_name }}"
+            mode: "600"
+            owner: "{{ ansible_env.USER }}"
+            group: "{{ ansible_env.USER }}"
+
