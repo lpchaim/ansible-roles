@@ -8,4 +8,4 @@
     apply:
       vars:
         library: library
-        libary_path: "{{ item.path }}/{{ library }}"
+        library_path: "{{ item.path }}/{{ library }}"
