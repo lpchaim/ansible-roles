@@ -1,0 +1,9 @@
+---
+- name: Check if nix is installed
+  register: nix_bin
+  ignore_errors: true
+  ansible.builtin.stat:
+    path: /nix/var/nix/profiles/default/bin/nix
+- when: not nix_bin.stat.exists
+  ansible.builtin.include_tasks:
+    file: install.yml

@@ -1,0 +1,13 @@
+---
+- name: Ensure curl is installed
+  become: true
+  ansible.builtin.package:
+    name: curl
+    state: present
+- name: Install nix package manager
+  become: true
+  ansible.builtin.shell:
+    cmd: >-
+      curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix
+      | sh -s -- install --no-confirm
+
