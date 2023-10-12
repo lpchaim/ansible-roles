@@ -6,7 +6,7 @@
 - name: Copy old compatdata
   when: compatdata_dir.stat.exists
   ansible.builtin.shell:
-    cmd: rsync -azhP --out-format='%n' "{{ libary_path }}/steamapps/compatdata/" "{{ user_home }}/.steam/steam/steamapps/compatdata/"
+    cmd: rsync -azhP --out-format='%n' "{{ libary_path }}/steamapps/compatdata/" "{{ ansible_env.HOME }}/.steam/steam/steamapps/compatdata/"
   register: copy_result
   changed_when: copy_result.stdout_lines | length > 1
 - name: Delete old compatdata

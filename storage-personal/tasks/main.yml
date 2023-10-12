@@ -14,7 +14,7 @@
       boot: true
   - name: Ensure Steam compatdata dir exists
     ansible.builtin.file:
-      path: "{{ user_home }}/.steam/steam/steamapps/compatdata"
+      path: "{{ ansible_env.HOME }}/.steam/steam/steamapps/compatdata"
       state: directory
       owner: "{{ lookup('env', 'USER') }}"
       group: "{{ lookup('env', 'USER') }}"
