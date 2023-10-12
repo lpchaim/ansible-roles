@@ -1,0 +1,6 @@
+        post-up   echo 1 > /proc/sys/net/ipv4/ip_forward
+        post-up   iptables -t nat -A POSTROUTING -s '{{ subnet_proxmox_v4 }}' -o vmbr0 -j MASQUERADE
+        post-down iptables -t nat -D POSTROUTING -s '{{ subnet_proxmox_v4 }}' -o vmbr0 -j MASQUERADE
+
+        post-up   iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1
+        post-down iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1

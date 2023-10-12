@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Setting this, so the repo does not need to be given on the commandline:
+export BORG_REPO='{{ repo.url }}'
+
+# See the section "Passphrase notes" for more infos.
+export BORG_PASSPHRASE='{{ repo.passphrase }}'
+
+borg "$@" 

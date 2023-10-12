@@ -1,0 +1,39 @@
+---
+
+- name: Install container backend
+  ansible.builtin.include_tasks:
+    file: "backend-install.yml"
+    apply:
+      become: true
+      tags:
+        - install
+        - initial
+
+- name: Create external network
+  become: true
+  community.docker.docker_network:
+    driver: bridge
+    name: external
+    ipam_config:
+      - subnet: 10.10.250.0/24
+
+- name: Create internal network
+  become: true
+  community.docker.docker_network:
+    driver: bridge
+    name: internal
+    internal: true
+    ipam_config:
+      - subnet: 172.16.80.0/24
+
+- name: Install containers
+  tags:
+    - install
+    - container
+  loop: "{{ containers }}"
+  vars:
+    container: "{{ item }}"
+  ansible.builtin.include_tasks:
+    file: "container-install.yml"
+    apply:
+      become: true

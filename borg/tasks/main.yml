@@ -1,0 +1,30 @@
+---
+- name: Install borg
+  tags: backup
+  become: true
+  ansible.builtin.package:
+    name: borgbackup
+    state: present
+- name: Ensure scripts dir exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ path_root_home }}/scripts"
+    mode: "{{ perms_dir_private }}"
+    state: directory
+- name: Setup scripts
+  loop: "{{ repos }}"
+  vars:
+    repo: "{{ item }}"
+  ansible.builtin.include_tasks:
+    file: scripts-create.yml
+    apply:
+      become: true
+- name: Setup cron jobs
+  loop: "{{ repos }}"
+  vars:
+    repo: "{{ item }}"
+  ansible.builtin.include_tasks:
+    file: cron-jobs-create.yml
+    apply:
+      become: true
+  

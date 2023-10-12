@@ -1,0 +1,25 @@
+- name: Ensure container is absent
+  vars:
+    dirs: "{{ container.dirs | default([]) }}"
+    rootful: "{{ container.needs_root | default(false) }}"
+    systemd_prefix: "container-"
+    systemd_name: "{{ systemd_prefix }}{{ container.name }}"
+  block:
+    - name: "Ensure systemd service is stopped for {{ container.name_friendly }}"
+      ansible.builtin.systemd_service:
+        name: "{{ systemd_name }}"
+        state: stopped
+        enabled: false
+      become: "{{ rootful }}"
+      failed_when: false
+
+    - name: "Ensure container is absent for {{ container.name_friendly }}"
+      containers.podman.podman_container:
+        name: "{{ container.name }}"
+        state: absent
+
+    - name: "Ensure systemd unit file is absent for {{ container.name_friendly }}"
+      ansible.builtin.file:
+        path: "{{ rootful | ternary(systemd_unit_path_rootful, systemd_unit_path_rootless) }}"
+        state: absent
+      become: "{{ rootful }}"

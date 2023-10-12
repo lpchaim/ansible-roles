@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Setting this, so the repo does not need to be given on the commandline:
+export BORG_REPO='{{ repo.url }}'
+
+# See the section "Passphrase notes" for more infos.
+export BORG_PASSPHRASE='{{ repo.passphrase }}'
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+pushd $SCRIPT_DIR
+
+# some helpers and error handling:
+info() { printf "\n%s %s\n\n" "$( date )" "$*" >&2; }
+trap 'echo $( date ) Backup interrupted >&2; exit 2' INT TERM
+
+info "Starting backup"
+
+# Backup the most important directories into an archive named after
+
+./backup
+backup_exit=$?
+
+info "Pruning repository"
+
+# Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
+# archives of THIS machine. The '{hostname}-*' matching is very important to
+# limit prune's operation to this machine's archives and not apply to
+# other machines' archives also:
+
+./prune
+prune_exit=$?
+
+compact_exit=0
+{% if compact %}
+# actually free repo disk space by compacting segments
+
+info "Compacting repository"
+
+./compact
+compact_exit=$?
+{% endif %}
+
+# use highest exit code as global exit code
+global_exit=$(( backup_exit > prune_exit ? backup_exit : prune_exit ))
+global_exit=$(( compact_exit > global_exit ? compact_exit : global_exit ))
+
+if [ ${global_exit} -eq 0 ]; then
+    info "Finished successfully"
+elif [ ${global_exit} -eq 1 ]; then
+    info "Finished with warnings"
+else
+    info "Finished with errors"
+fi
+
+exit ${global_exit}
+
+popd $SCRIPT_DIR

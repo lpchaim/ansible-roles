@@ -1,0 +1,11 @@
+- name: Ensure container is absent
+  vars:
+    dirs: "{{ container.dirs | default([]) }}"
+    rootful: "{{ container.needs_root | default(false) }}"
+    systemd_prefix: "container-"
+    systemd_name: "{{ systemd_prefix }}{{ container.name }}"
+  block:
+    - name: "Ensure container is absent for {{ container.name_friendly }}"
+      community.docker.docker_container:
+        state: absent
+        name: "{{ default_container_name }}{{ item }}"

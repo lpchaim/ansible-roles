@@ -1,0 +1,39 @@
+---
+
+- name: Ensure socat is installed
+  become: true
+  ansible.builtin.package:
+    name: socat
+    state: present
+
+- name: Ensure HTTP IPv6 to IPv4 tunnel service is setup
+  become: true
+  vars:
+    source_port: "{{ port_http }}"
+    destination_port: "{{ port_http_internal }}"
+  ansible.builtin.template:
+    src: 6to4.service.j2
+    dest: /lib/systemd/system/6to4-http.service
+
+- name: Ensure HTTP IPv6 to IPv4 tunnel is enabled and running
+  become: true
+  ansible.builtin.systemd:
+    name: 6to4-http
+    enabled: true
+    state: restarted
+
+- name: Ensure HTTPS IPv6 to IPv4 tunnel service is setup
+  become: true
+  vars:
+    source_port: "{{ port_https }}"
+    destination_port: "{{ port_https_internal }}"
+  ansible.builtin.template:
+    src: 6to4.service.j2
+    dest: /lib/systemd/system/6to4-https.service
+
+- name: Ensure HTTPS IPv6 to IPv4 tunnel is enabled and running
+  become: true
+  ansible.builtin.systemd:
+    name: 6to4-https
+    enabled: true
+    state: restarted

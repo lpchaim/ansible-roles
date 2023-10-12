@@ -1,0 +1,6 @@
+---
+- name: Ensure mergerfs is installed
+  become: true
+  ansible.builtin.package:
+    name: mergerfs
+    state: present

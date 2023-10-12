@@ -1,0 +1,5 @@
+#!/bin/sh
+
+snapraid scrub \
+	--plan {{ snapraid_scrub_percent }} \
+	--older-than {{ snapraid_scrub_age }}

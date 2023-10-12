@@ -1,0 +1,169 @@
+# Traefik dynamic configuration file
+# See https://doc.traefik.io/traefik/getting-started/configuration-overview/#the-dynamic-configuration
+
+http:
+  routers:
+    api:
+      rule: Host(`traefik.{{ domain }}`)
+      entrypoints:
+        - websecure
+      service: api@internal
+      middlewares:
+        - auth@file
+      tls:
+        certResolver: letsEncrypt
+    nextcloud:
+      rule: Host(`nextcloud.{{ domain }}`)
+      entrypoints:
+        - websecure
+      service: nextcloud
+      middlewares:
+        - nextcloudChain
+      tls:
+        certResolver: letsEncrypt
+
+  services:
+    nextcloud:
+      loadBalancer:
+        servers:
+          - url: http://10.10.6.0:11000
+
+  middlewares:
+    # A basic authentification middleware, to protect the Traefik dashboard to anyone except myself
+    # Use with traefik.http.routers.myRouter.middlewares: "auth@file"
+    auth:
+      basicAuth:
+        users:
+          - "{{ secret_traefik_password_hashed }}"
+
+    # Recommended default middleware for most of the services
+    # Use with traefik.http.routers.myRouter.middlewares: "default@file"
+    default:
+     chain:
+       middlewares:
+          # - traefik-real-ip
+          - cloudflarewarp
+          - crowdsec
+          - default-security-headers
+          - gzip
+
+    # Add automatically some security headers
+    # Use with traefik.http.routers.myRouter.middlewares: "default-security-headers@file"
+    default-security-headers:
+      headers:
+        browserXssFilter: true                            # X-XSS-Protection=1; mode=block
+        contentTypeNosniff: true                          # X-Content-Type-Options=nosniff
+        forceSTSHeader: true                              # Add the Strict-Transport-Security header even when the connection is HTTP
+        frameDeny: true                                   # X-Frame-Options=deny
+        referrerPolicy: "strict-origin-when-cross-origin"
+        sslRedirect: true                                 # Allow only https requests
+        stsIncludeSubdomains: true                        # Add includeSubdomains to the Strict-Transport-Security header
+        stsPreload: true                                  # Add preload flag appended to the Strict-Transport-Security header
+        stsSeconds: 63072000                              # Set the max-age of the Strict-Transport-Security header (63072000 = 2 years)
+
+    # Enables the GZIP compression (https://docs.traefik.io/middlewares/compress/)
+    #   if the response body is larger than 1400 bytes
+    #   if the Accept-Encoding request header contains gzip
+    #   if the response is not already compressed (Content-Encoding is not set)
+    # Use with traefik.http.routers.myRouter.middlewares: "gzip@file"
+    gzip:
+      compress: {}
+
+    crowdsec:
+      plugin:
+        bouncer:
+          enabled: true
+          logLevel: INFO
+          crowdsecMode: live # live | stream | alone
+          updateIntervalSeconds: 60 # For stream mode
+          defaultDecisionSeconds: 60 # For live mode
+          crowdsecLapiKey: "{{ secret_crowdsec_bouncer_api_key }}"
+          crowdsecLapiHost: crowdsec:8080
+          crowdsecLapiScheme: http
+          crowdsecLapiTLSInsecureVerify: false
+          forwardedHeadersTrustedIPs: {{ cloudflare_ips_v4 + cloudflare_ips_v6 }}
+          clientTrustedIPs: 
+            - {{ subnet_private_v4 }}
+          forwardedHeadersCustomName: X-Forwarded-For
+          # redisCacheEnabled: false
+          # redisCacheHost: "redis:6379"
+          # redisCachePassword: password
+          # redisCacheDatabase: "5"
+
+    traefik-real-ip:
+      plugin:
+        traefik-real-ip:
+          excludednets:
+            - "1.1.1.1/24"
+
+    cloudflarewarp:
+      plugin:
+        cloudflarewarp:
+          disableDefault: false
+          trustip: {{ cloudflare_ips_v4 + cloudflare_ips_v6 }}
+    nextcloudSecureHeaders:
+      headers:
+        hostsProxyHeaders:
+          - X-Forwarded-Host
+        referrerPolicy: same-origin
+    httpsRedirect:
+        redirectScheme:
+          scheme: https 
+    nextcloudChain:
+      chain:
+          middlewares:
+            - cloudflarewarp
+            - crowdsec
+            - httpsRedirect
+            - nextcloudSecureHeaders
+            - gzip
+  serversTransports:
+    ignoreCert:
+      insecureSkipVerify: true
+# See https://doc.traefik.io/traefik/https/tls/
+tls:
+  options:
+    # To use with the label "traefik.http.routers.myrouter.tls.options=modern@file"
+    modern:
+      minVersion: "VersionTLS13"                          # Minimum TLS Version
+      sniStrict: true                                     # Strict SNI Checking
+    
+    # To use with the label "traefik.http.routers.myrouter.tls.options=intermediate@file"
+    intermediate:
+      cipherSuites:
+        - "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+      minVersion: "VersionTLS12"                          # Minimum TLS Version
+      sniStrict: true                                     # Strict SNI Checking
+    
+    # To use with the label "traefik.http.routers.myrouter.tls.options=old@file"
+    old:
+      cipherSuites:
+        - "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+        - "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+        - "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
+        - "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+        - "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
+        - "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
+        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_RSA_WITH_AES_128_CBC_SHA256"
+        - "TLS_RSA_WITH_AES_128_CBC_SHA"
+        - "TLS_RSA_WITH_AES_256_CBC_SHA"
+        - "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+      minVersion: "TLSv1"                                 # Minimum TLS Version
+      sniStrict: true                                     # Strict SNI Checking
+
+# # Generated 2021-08-12, Mozilla Guideline v5.6, Traefik 2.4.8
+# #   https://ssl-config.mozilla.org/#server=traefik&version=2.4.8&config=old&guideline=5.6
+# #   https://ssl-config.mozilla.org/#server=traefik&version=2.4.8&config=intermediate&guideline=5.6

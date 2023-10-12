@@ -1,0 +1,24 @@
+- name: Ensure podman is absent
+  ansible.builtin.package:
+    name: podman
+    state: absent
+
+- name: Ensure podman-compose is absent
+  ansible.builtin.package:
+    name: podman-compose
+    state: absent
+
+- name: Ensure podman-docker is absent
+  ansible.builtin.package:
+    name: podman-docker
+    state: absent
+
+- name: Ensure podman-docker alias warnings aren't silenced
+  ansible.builtin.file:
+    path: /etc/containers/nodocker
+    state: absent
+
+- name: Ensure docker.io is removed from the registry
+  ansible.builtin.file:
+    path: /etc/containers/registries.conf.d/docker-io.conf
+    state: absent

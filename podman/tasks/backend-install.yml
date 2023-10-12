@@ -1,0 +1,39 @@
+- name: Ensure podman is installed
+  ansible.builtin.package:
+    name: podman
+    state: present
+
+- name: Ensure podman-compose is installed
+  ansible.builtin.package:
+    name: podman-compose
+    state: present
+
+- name: Ensure podman-docker is installed
+  ansible.builtin.package:
+    name: podman-docker
+    state: present
+
+- name: Ensure podman-docker alias warnings are silenced
+  ansible.builtin.copy:
+    content: ''
+    mode: "{{ perms_file_default }}"
+    dest: /etc/containers/nodocker
+
+- name: Ensure docker.io is added to the registry
+  ansible.builtin.copy:
+    content: |
+      unqualified-search-registries = ["{{ registries | join('", "') }}"]
+    dest: /etc/containers/registries.conf.d/docker-io.conf
+    mode: "{{ perms_dir_default }}"
+
+- name: Ensure podman service is running
+  ansible.builtin.systemd:
+    name: podman.service
+    state: started
+
+- name: Ensure podman socket is running
+  ansible.builtin.systemd:
+    name: podman.socket
+    enabled: true
+    state: started
+    daemon_reload: true

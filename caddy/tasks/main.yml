@@ -1,0 +1,17 @@
+---
+- name: Install caddy
+  ansible.builtin.include_tasks:
+    file: install.yml
+    apply:
+      become: true
+      tags:
+        - install
+        - initial
+
+- name: Configure caddy
+  ansible.builtin.include_tasks:
+    file: configure.yml
+    apply:
+      become: true
+      tags:
+        - config

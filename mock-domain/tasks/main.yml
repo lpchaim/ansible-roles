@@ -1,0 +1,6 @@
+- name: Ensure domain is mocked locally for testing
+  ansible.builtin.template:
+    src: templates/mock-domain-locally.j2
+    dest: /etc/dnsmasq.d/mock-domain-locally
+    mode: "{{ perms_file_default }}"
+  become: true

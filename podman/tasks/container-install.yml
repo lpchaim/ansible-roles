@@ -1,0 +1,63 @@
+- name: Ensure user systemd dir exists
+  ansible.builtin.file:
+    path: "{{ systemd_unit_path_rootless }}"
+    state: directory
+    mode: "{{ perms_dir_default }}"
+
+- name: Ensure container is setup
+  vars:
+    dirs: "{{ container.dirs | default([]) }}"
+    rootful: "{{ container.needs_root | default(false) }}"
+    systemd_prefix: "container-"
+    systemd_name: "{{ systemd_prefix }}{{ container.name }}"
+  block:
+    - name: "Ensure systemd service is stopped for {{ container.name_friendly }}"
+      ansible.builtin.systemd_service:
+        name: "{{ systemd_name }}"
+        state: stopped
+        scope: "{{ rootful | ternary('system', 'user') }}"
+      become: "{{ rootful }}"
+      failed_when: false
+
+    - name: "Ensure needed directories exist for {{ container.name_friendly }}"
+      when: dirs | length > 0
+      loop: "{{ dirs }}"
+      loop_control:
+        loop_var: dir
+      ansible.builtin.file:
+        path: "{{ dir }}"
+        state: directory
+        mode: "{{ perms_dir_default }}"
+
+    - name: "Ensure container is setup for {{ container.name_friendly }}"
+      containers.podman.podman_container:
+        state: started
+        network: bridge
+        restart_policy: unless-stopped
+        recreate: true
+        detach: false
+        timezone: "{{ timezone }}"
+        name: "{{ container.name }}"
+        image: "{{ container.image }}"
+        ports: "{{ container.ports | default(omit) }}"
+        env: "{{ container.env | default(omit) }}"
+        volumes: "{{ container.volumes | default(omit) }}"
+        label: "{{ container.auto_update | default(true) | ternary(container_labels_autoupdate, omit) }}"
+
+    - name: "Ensure systemd unit file exists for {{ container.name_friendly }}"
+      ansible.builtin.shell:
+        cmd: "
+            podman generate systemd
+            --new {{ container.name }}
+            > {{ rootful | ternary(systemd_unit_path_rootful, systemd_unit_path_rootless) }}/{{ systemd_name }}.service
+          "
+      changed_when: true
+
+    - name: "Ensure systemd service is running for {{ container.name_friendly }}"
+      ansible.builtin.systemd_service:
+        name: "{{ systemd_name }}"
+        state: started
+        enabled: true
+        daemon_reload: true
+        scope: "{{ rootful | ternary('system', 'user') }}"
+      become: "{{ rootful }}"

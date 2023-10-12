@@ -1,0 +1,59 @@
+---
+- name: Ensure default directories are setup
+  ansible.builtin.include_tasks:
+    file: dirs.yml
+    apply:
+      tags: setup
+
+- name: Ensure dotfiles are deployed
+  ansible.builtin.include_tasks:
+    file: dotfiles.yml
+    apply:
+      tags: setup
+
+- name: Ensure packages are installed
+  ansible.builtin.include_tasks:
+    file: packages.yml
+    apply:
+      tags:
+        - setup
+        - install
+        - packages
+
+- name: Ensure git is configured
+  block:
+    - name: Ensure default git name is set
+      community.general.git_config:
+        name: user.name
+        scope: global
+        value: "{{ user_default }}"
+    - name: Ensure default git email is set
+      community.general.git_config:
+        name: user.email
+        scope: global
+        value: "{{ secret_email_default }}"
+
+- name: Ensure Oh My Zsh is installed
+  ansible.builtin.include_tasks:
+    file: oh-my-zsh.yml
+    apply:
+      tags:
+        - install
+
+- name: Ensure user shell is set
+  ansible.builtin.user:
+    name: "{{ user_default }}"
+    shell: /usr/bin/zsh
+  become: true
+
+- name: Ensure timezone is set
+  community.general.timezone:
+    name: "{{ timezone }}"
+  become: true
+
+- name: Enable memory overcommit
+  ansible.posix.sysctl:
+    name: vm.overcommit_memory
+    value: 1
+    state: present
+  become: true

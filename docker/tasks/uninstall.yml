@@ -1,0 +1,17 @@
+---
+
+- name: Uninstall containers
+  ansible.builtin.include_tasks:
+    file: "container-uninstall.yml"
+  vars:
+    container: "{{ item }}"
+  loop: "{{ containers }}"
+
+- name: Uninstall container backend
+  ansible.builtin.include_tasks:
+    file: "backend-uninstall.yml"
+    apply:
+      become: true
+      tags:
+        - install
+        - initial

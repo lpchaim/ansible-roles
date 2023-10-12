@@ -1,0 +1,94 @@
+---
+
+- name: Update packages
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install essential user packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - curl
+    - htop
+    - gawk
+    - git
+    - jq
+    - neovim
+    - screen
+    - tldr
+    - tree
+    - vim
+    - wget
+    - zsh
+    - lm-sensors
+    - hddtemp
+  tags: install
+  become: true
+
+- name: Install essential system packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apache2-utils
+    - dnsmasq
+    # - mysql-client
+    - redis-tools
+  tags: install
+  become: true
+
+# - name: Ensure tldr folder exists
+#   ansible.builtin.command:
+#     cmd: "mkdir -p /home/{{ user_default }}/.local/share/tldr"
+
+# - name: Update tldr
+#   ansible.builtin.command:
+#     cmd: "tldr --update"
+#   ignore_errors: true
+
+# - name: Get release
+#   ansible.builtin.command:
+#     cmd: lsb_release -cs
+#   register: lsb_release
+
+# - name: Add Redis GPG apt Key
+#   ansible.builtin.apt_key:
+#     url: https://packages.redis.io/gpg
+#     keyring: /usr/share/keyrings/redis-archive-keyring.gpg
+#     state: present
+#   become: true
+
+# - name: Add Redis Repository
+#   ansible.builtin.shell:
+#     cmd: echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+#   become: true
+
+# - name: Update apt and install Redis
+#   ansible.builtin.apt:
+#     name: redis
+#     state: latest
+#     update_cache: true
+  # become: true
+
+# - name: Add Redis GPG apt Key
+#   ansible.builtin.apt_key:
+#     url: https://packages.redis.io/gpg
+#     keyring: /usr/share/keyrings/redis-archive-keyring.gpg
+#     state: present
+#   become: true
+
+# - name: Add Eternal Terminal Repository
+#   ansible.builtin.apt_repository:
+#     repo: ppa:jgmath2000/et
+#   become: true
+
+# - name: Update apt and install Eternal Terminal + dependencies
+#   ansible.builtin.apt:
+#     name:
+#       - software-properties-common
+#       - et
+#     state: latest
+#     update_cache: true
+#   become: true

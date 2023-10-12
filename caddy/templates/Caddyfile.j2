@@ -1,0 +1,179 @@
+{
+	# dynamic_dns {
+	# 	provider cloudflare {{ secret_cloudflare_api_token }}
+	# 	domains {
+	# 		{{ domain }}
+	# 	}
+	# 	check_interval 5m
+	# 	versions ipv6
+	# 	ip_source simple_http https://ipv6.icanhazip.com/
+	# 	ip_source simple_http https://api6.ipify.org/
+	# }
+
+	servers {
+		trusted_proxies cloudflare {
+			interval 1h
+		}
+	}
+
+	crowdsec {
+			api_url http://10.10.2.30:8080
+			api_key 3958d6d7055480698979468d180eebd4
+			# ticker_interval 15s
+			# disable_streaming
+			# enable_hard_fails
+	}
+
+	order crowdsec first
+	order filter after encode
+}
+
+## Generic themepark snippets
+# Args: app, theme
+(themepark_filter_theme) {
+	filter {
+		content_type text/html.*
+		search_pattern </head>
+		replacement "<link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/base/{args.0}/{args.1}.css'></head>"
+	}
+}
+# Args: app
+(themepark_filter_addon_darker) {
+	filter {
+		content_type text/html.*
+		search_pattern </head>
+		replacement "<link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/base/{args.0}/{args.0}-base.css'><link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/ad>
+	}
+}
+# Headers so that reverse proxying works
+(themepark_headers) {
+    header_up -Accept-Encoding
+}
+
+## From lemmy docs
+(lemmy_settings) {
+    encode gzip
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000; include-subdomains;"
+        X-XSS-Protection "1; mode=block"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer-when-downgrade
+        X-Robots-Tag "none"
+    }
+}
+
+*.{{ domain }} {
+	tls {
+		dns cloudflare {{ secret_cloudflare_api_token }}
+		# resolvers 8.8.8.8
+	}
+
+	encode zstd gzip
+
+	header {
+		-Server
+        Strict-Transport-Security "max-age=31536000; include-subdomains;"
+        X-XSS-Protection "1; mode=block"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer-when-downgrade
+        X-Robots-Tag "none"
+		# Strict-Transport-Security "max-age=31536000;"
+	}
+
+	host bazarr.{{ domain }} {
+		crowdsec
+		reverse_proxy 10.10.10.0:6767 {
+			import themepark_headers
+		}
+	}
+
+	@code host code.{{ domain }}
+	handle @code {
+		reverse_proxy  10.10.10.0:8443 {
+			import themepark_headers
+		}
+	}
+
+	@homeassistant host hass.{{ domain }}
+	handle @homeassistant {
+		reverse_proxy 10.0.0.2:8123
+	}
+
+	@jellyfin host jellyfin.{{ domain }}
+	handle @jellyfin {
+		reverse_proxy 10.10.8.10:8096 {
+			import themepark_headers
+		}
+	}
+
+	@jellyseerr host jellyseerr.{{ domain }}
+	handle @jellyseerr {
+		reverse_proxy 10.10.10.0:5055 {
+			import themepark_headers
+		}
+	}
+
+	# @lemmy host lemmy.{{ domain }}
+	# handle @lemmy {
+	#     import lemmy_settings
+	#     reverse_proxy 10.10.6.10:80
+	# }
+
+	@nextcloud host nextcloud.{{ domain }}
+	handle @nextcloud {
+		reverse_proxy 10.10.4.50:11000 {
+			import themepark_headers
+		}
+		redir /.well-known/carddav /remote.php/dav 301
+		redir /.well-known/caldav /remote.php/dav 301
+	}
+
+	@prowlarr host prowlarr.{{ domain }}
+	handle @prowlarr {
+		reverse_proxy 10.10.10.0:9696
+	}
+
+	@proxmox host proxmox.{{ domain }}
+	handle @proxmox {
+		reverse_proxy 10.10.0.1:8006 {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+
+	@qbittorrent host qbittorrent.{{ domain }}
+	handle @qbittorrent {
+		reverse_proxy 10.10.10.0:8081 {
+			import themepark_headers
+			header_down -x-webkit-csp
+			header_down -content-security-policy
+			header_down -X-Frame-Options
+		}
+		import themepark_filter_theme "qbittorrent" "organizr"
+	}
+
+	@radarr host radarr.{{ domain }}
+	handle @radarr {
+		reverse_proxy 10.10.10.0:7878 {
+			import themepark_headers
+		}
+		import themepark_filter_addon_darker "radarr"
+	}
+
+	@sonarr host sonarr.{{ domain }}
+	handle @sonarr {
+		reverse_proxy 10.10.10.0:8989 {
+			import themepark_headers
+		}
+		import themepark_filter_addon_darker "sonarr"
+	}
+
+	# Fallback
+	handle {
+		abort
+	}
+}

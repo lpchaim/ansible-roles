@@ -1,0 +1,9 @@
+---
+- name: Setup root my.cnf
+  ansible.builtin.template:
+    src: templates/my.cnf.j2
+    owner: root
+    group: root
+    dest: "/etc/my.cnf"
+    mode: "{{ perms_file_private }}"
+  become: true

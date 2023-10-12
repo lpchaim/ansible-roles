@@ -1,0 +1,10 @@
+#!/bin/bash
+
+./borg prune \
+    --list \
+    --glob-archives '{{ repo.name }}-*' \
+    --show-rc \
+    --keep-daily    1 \
+    --keep-weekly   1 \
+    --keep-monthly  6
+exit $?

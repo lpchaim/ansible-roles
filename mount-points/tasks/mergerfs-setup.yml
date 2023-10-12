@@ -1,0 +1,10 @@
+---
+- name: Ensure mergerfs is setup
+  become: true
+  ansible.builtin.mount:
+    fstype: fuse.mergerfs
+    src: "{{ ':'.join(disks_data | map(attribute='path') | mandatory) }}"
+    path: "{{ path_storage }}"
+    opts: defaults,allow_other,fsname=mergerfs,minfreespace=50G
+    state: mounted
+    boot: true

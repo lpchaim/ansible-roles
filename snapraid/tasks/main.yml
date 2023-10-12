@@ -1,0 +1,91 @@
+---
+
+- name: Install snapraid
+  ansible.builtin.package:
+    name: snapraid
+    state: present
+  tags: install
+  become: true
+
+# - name: Configure snapraid
+#   ansible.builtin.include_role:
+#     name: ironicbadger.snapraid
+#     apply:
+#       become: true
+
+- name: Check valid configuration
+  block:
+    - ansible.builtin.fail:
+        msg: No data disks defined
+      when: snapraid_data_disks | length == 0
+    - ansible.builtin.fail:
+        msg: No parity disks defined
+      when: snapraid_parity_disks | length == 0
+    - ansible.builtin.fail:
+        msg: No content files defined
+      when:
+        - snapraid_content_files | length == 0
+        - snapraid_data_disks | selectattr('content') | length == 0
+        - snapraid_parity_disks | selectattr('content') | length == 0
+
+- name: Install snapraid config file
+  ansible.builtin.template:
+    src: snapraid.conf.j2
+    dest: /etc/snapraid.conf
+    owner: root
+    group: root
+    mode: 0775
+
+- name: Ensure snapraid script dir exists
+  ansible.builtin.file:
+    path: "{{ path_root_home }}/scripts/snapraid"
+    mode: "{{ perms_dir_default }}"
+    state: directory
+
+- name: Create snapraid sync script
+  ansible.builtin.template:
+    src: sync.sh.j2
+    dest: "{{ path_root_home }}/scripts/snapraid/sync"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+
+- name: Schedule snapraid sync
+  become: true
+  cron:
+    name: snapraid sync
+    job: 
+      logs=$(
+        {{ path_root_home }}/scripts/snapraid/sync 2>&1
+        | tail --bytes=100000
+      );
+      curl -fsS -m 10 --retry 5 --data-raw "$logs" -o /dev/null {{ snapraid_healthcheck_io_host }}/{{ snapraid_sync_healthcheck_io_uuid }}/$?;
+    user: root
+    weekday: "{{ snapraid_sync_schedule.weekday | default ('*') }}"
+    minute: "{{ snapraid_sync_schedule.minute | default ('0')}}"
+    hour: "{{ snapraid_sync_schedule.hour | default ('0') }}"
+    dom: "{{ snapraid_sync_schedule.dom|default('*') }}"
+
+- name: Create snapraid scrub script
+  ansible.builtin.template:
+    src: scrub.sh.j2
+    dest: "{{ path_root_home }}/scripts/snapraid/scrub"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+
+- name: Schedule snapraid scrub
+  become: true
+  cron:
+    name: snapraid scrub
+    job:
+      logs=$(
+        {{ path_root_home }}/scripts/snapraid/scrub 2>&1
+        | tail --bytes=100000
+      );
+      curl -fsS -m 10 --retry 5 --data-raw "$logs" -o /dev/null {{ snapraid_healthcheck_io_host }}/{{ snapraid_scrub_healthcheck_io_uuid }}/$?
+    user: root
+    weekday: "{{ snapraid_scrub_schedule.weekday | default ('*') }}"
+    minute: "{{ snapraid_scrub_schedule.minute | default ('0')}}"
+    hour: "{{ snapraid_scrub_schedule.hour | default ('0') }}"
+    dom: "{{ snapraid_scrub_schedule.dom|default('*') }}"

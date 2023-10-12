@@ -1,0 +1,34 @@
+---
+
+- name: Ensure app config dir exists
+  ansible.builtin.file:
+    path: "{{ path_app_config }}"
+    state: directory
+    mode: "{{ perms_dir_default }}"
+
+- name: Ensure app data dir exists
+  ansible.builtin.file:
+    path: "{{ path_app_data }}"
+    state: directory
+    mode: "{{ perms_dir_default }}"
+
+- name: Ensure app logs dir exists
+  ansible.builtin.file:
+    path: "{{ path_app_logs }}"
+    state: directory
+    mode: "{{ perms_dir_default }}"
+
+- name: Ensure script dir exists
+  ansible.builtin.file:
+    path: "{{ path_root_home }}/scripts"
+    mode: "{{ perms_dir_default }}"
+    state: directory
+
+# - name: Ensure storage mount point exists
+#   become: true
+#   ansible.builtin.file:
+#     path: "{{ path_storage }}"
+#     state: directory
+#     mode: "{{ perms_dir_default }}"
+#     owner: "{{ user_default }}"
+#     group: "{{ group_default }}"

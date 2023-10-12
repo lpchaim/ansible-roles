@@ -1,0 +1,73 @@
+ansible_os_family: 'none'
+
+snapraid_install: false
+
+snapraid_runner: false
+snapraid_runner_scrub: false
+snapraid_scrub_percent: 20
+snapraid_scrub_age: 7
+snapraid_runner_touch: false
+snapraid_runner_delete_threshold: 250
+snapraid_runner_healthcheck_io_uuid: "{{ secret_healthcheck_io_uuid_snapraid_runner }}"
+
+snapraid_runner_email_address: "{{ secret_email_default }}"
+snapraid_runner_email_pass: "{{ secret_email_app_password_snapraid_runner }}"
+snapraid_runner_smtp_host: smtp.gmail.com
+snapraid_runner_smtp_port: 465
+snapraid_runner_use_ssl: true
+
+snapraid_data_disks:
+  - path: /srv/data1
+    content: true
+  - path: /srv/data2
+    content: true
+  - path: /srv/data3
+    content: true
+
+snapraid_parity_disks:
+  - path: /srv/parity1
+    content: false
+
+snapraid_content_files: []
+  # - "/root/.snapraid.content"
+
+snapraid_config_excludes:
+  - "*.!sync"
+  - "*.unrecoverable"
+  - /.Temp
+  - /.Trash-1000
+  - /$RECYCLE.BIN
+  - /lost+found/
+  - /System Volume Information
+  - /tmp/
+  - "/AppData*/"
+  - /Downloads/
+
+snapraid_runner_cron_jobs:
+  - job: "{{ snapraid_runner_command }}"
+    name: "snapraid_runner"
+    weekday: "*"
+    hour: 2
+    minute: 0
+  - job: |
+      docker pause $(docker ps -q)
+      && snapraid scrub
+        --plan {{ snapraid_scrub_percent }}
+        --older-than {{ snapraid_scrub_age }}
+      {% if snapraid_scrub_healthcheck_io_uuid %} && curl -fsS -m 10 --retry 5 -o /dev/null {{ snapraid_healthcheck_io_host }}/{{ snapraid_scrub_healthcheck_io_uuid }}{% endif %}
+      ; docker unpause $(docker ps -q)
+    name: "snapraid_scrub"
+    weekday: 7
+    hour: 3
+    minute: 0
+
+snapraid_sync_schedule:
+  minute: 0
+  hour: 2
+snapraid_sync_healthcheck_io_uuid: "{{ secret_healthcheck_io_uuid_snapraid_sync }}"
+
+snapraid_scrub_schedule:
+  minute: 0
+  hour: 3
+  weekday: 7
+snapraid_scrub_healthcheck_io_uuid: "{{ secret_healthcheck_io_uuid_snapraid_scrub }}"

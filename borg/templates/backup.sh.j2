@@ -1,0 +1,17 @@
+#!/bin/bash
+
+./borg create \
+   	--verbose \
+   	--filter AME \
+   	--list \
+   	--stats \
+   	--show-rc \
+   	--compression auto,zstd,3 \
+   	--exclude-caches \
+	--files-cache=ctime,size \
+{% for path in repo.excludes %}
+	--exclude '{{ path }}' \
+{% endfor %}
+	::'{{ repo.name }}-{now}' \
+{% for path in repo.includes %}'{{ path }}' {% endfor %};
+exit $?

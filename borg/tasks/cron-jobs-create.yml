@@ -1,0 +1,16 @@
+---
+- name: Schedule borg backup
+  become: true
+  cron:
+    name: "borg backup {{ repo.name }}"
+    job:
+      logs=$(
+        {{ path_root_home }}/scripts/borg/{{ repo.name }}/backup-prune-compact 2>&1
+        | tail --bytes=100000
+      );
+      curl -fsS -m 10 --retry 5 --data-raw "$logs" -o /dev/null {{ healthchecks_io_host }}/{{ repo.healthchecks_io_uuid }}/$?;
+    user: root
+    weekday: "*"
+    minute: "0"
+    hour: "4"
+    dom: "*"

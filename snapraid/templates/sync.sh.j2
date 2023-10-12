@@ -1,0 +1,9 @@
+#!/bin/sh
+
+snapraid touch;
+logs=$(
+	snapraid sync 2>&1 \
+	| tail --bytes=100000
+){% if snapraid_sync_healthcheck_io_uuid %};
+curl -fsS -m 10 --retry 5 --data-raw "$logs" -o /dev/null {{ snapraid_healthcheck_io_host }}/{{ snapraid_sync_healthcheck_io_uuid }}/$?
+{% endif %}

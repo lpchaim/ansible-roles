@@ -1,0 +1,21 @@
+# - name: Ensure mount points are set up
+#   vars:
+#     disks: "{{ disks_data + disks_parity }}"
+#   when: disks_data | length > 0 or disks_parity | length > 0
+#   ansible.builtin.include_tasks:
+#     file: "dirs-setup.yml"
+
+- name: Ensure fstab entries are set up
+  vars:
+    disks: "{{ disks_data + disks_parity }}"
+  when: disks_data | length > 0 or disks_parity | length > 0
+  ansible.builtin.include_tasks:
+    file: "fstab-setup.yml"
+
+- name: Ensure mergerfs is installed
+  ansible.builtin.include_tasks:
+    file: "mergerfs-install.yml"
+
+- name: Ensure mergerfs is setup
+  ansible.builtin.include_tasks:
+    file: "mergerfs-setup.yml"

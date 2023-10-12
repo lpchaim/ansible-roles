@@ -1,0 +1,39 @@
+repos:
+  - name: main
+    url: "{{ remote_borg_url }}/./backups/main"
+    passphrase: "{{ secret_borg_passphrase_main }}"
+    includes:
+      - "{{ path_storage }}/Backups"
+      - "{{ path_storage }}/Data/proxmox/dump"
+      - "{{ path_storage }}/Data/proxmox/private"
+      - "{{ path_storage }}/Data/proxmox/snippets"
+    excludes: []
+    healthchecks_io_uuid: e7f57374-c989-4665-b359-a5ac9d873426
+  - name: appdata
+    url: "{{ remote_borg_url }}/./backups/appdata"
+    passphrase: "{{ secret_borg_passphrase_appdata }}"
+    includes:
+      - "{{ path_storage }}/AppData"
+    excludes:
+      - "sh:{{ path_storage }}/AppData/data/nextcloud/*/files_trashbin/"
+      - "{{ path_storage }}/AppData/data/nextcloud/appdata_oc4ta1n7seqm/preview"
+      - "{{ path_storage }}/AppData/config/jellyfin/cache/"
+      - "sh:{{ path_storage }}/AppData/**/cache/"
+      - "sh:{{ path_storage }}/AppData/**/preview/"
+    healthchecks_io_uuid: 45ca07ce-8a15-4a52-bed1-7407534a597a
+  - name: personal
+    url: "{{ remote_borg_url }}/./backups/personal"
+    passphrase: "{{ secret_borg_passphrase_personal }}"
+    includes:
+      - "{{ path_storage }}/Documents"
+      - "{{ path_storage }}/Pictures"
+    excludes:
+      - "sh:{{ path_storage }}/Documents/.Projects/*/**/.git/"
+      - "sh:{{ path_storage }}/Documents/.Projects/*/**/.venv/"
+      - "sh:{{ path_storage }}/Documents/.Projects/*/**/venv/"
+      - "sh:{{ path_storage }}/Documents/.Projects/*/**/target/"
+      - "sh:{{ path_storage }}/Documents/.Projects/*/**/release/"
+      - "sh:{{ path_storage }}/Documents/.Projects/*/**/node_modules/"
+    healthchecks_io_uuid: 33619d35-90b3-44ff-9f77-315498dec121
+healthchecks_io_host: https://hc-ping.com
+compact: false

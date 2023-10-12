@@ -1,0 +1,63 @@
+---
+- name: Set caddy to install
+  ansible.builtin.set_fact:
+    caddy_install: true
+
+- name: Check if binary already exists
+  ansible.builtin.stat:
+    path: "{{ path_bin_file }}"
+  register: caddy_bin_result
+
+- name: Check if an update is needed
+  when: caddy_bin_result.stat.exists
+  block:
+    - name: Get installed version
+      ansible.builtin.command: "{{ path_bin_file }} version"
+      register: caddy_version_installed
+      changed_when: false
+    - name: Store installed version
+      ansible.builtin.set_fact:
+        caddy_version_installed: "{{
+            caddy_version_installed.stdout
+            | regex_search('^(v?[^\\s]*)')
+          }}"
+    - name: Get latest released version from github
+      delegate_to: localhost
+      become: false
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/caddyserver/caddy/releases"
+        status_code: 200
+        body_format: json
+      register: releases
+    - name: Store latest released version
+      ansible.builtin.set_fact:
+        caddy_version_released: "{{
+            releases.json
+            | json_query('[?prerelease==`false` && draft==`false`].tag_name')
+            | community.general.version_sort
+            | last | regex_search('^(v?[^\\s]*)')
+          }}"
+    - name: Disable caddy install
+      ansible.builtin.set_fact:
+        caddy_install: false
+      when: caddy_version_installed == caddy_version_released
+
+- name: Download latest release
+  ansible.builtin.get_url:
+    url: "{{ url_binary }}"
+    dest: "{{ path_bin_file }}"
+    owner: root
+    group: root
+    mode: a+x
+  when: caddy_install
+
+- name: Add the caddy group
+  ansible.builtin.group:
+    name: caddy
+    system: true
+    state: present
+
+- name: Add the caddy user
+  ansible.builtin.user:
+    name: caddy
+    group: caddy

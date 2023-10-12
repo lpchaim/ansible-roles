@@ -1,0 +1,12 @@
+[Unit]
+Description=Tunnels ipv6 traffic to ipv4
+Documentation=https://foundryvtt.com
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=socat TCP6-LISTEN:{{ source_port }},fork TCP4:127.0.0.1:{{ destination_port }}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+- name: Ensure mount points exist
+  vars:
+    disks: "{{ disks | default([]) }}"
+  block:
+    - name: "Ensure {{ item.path }} mount point exists"
+      when: disks | length > 0
+      loop: "{{ disks }}"
+      become: true
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: "{{ perms_dir_default }}"
+        owner: "{{ user_default }}"
+        group: "{{ group_default }}"

@@ -1,0 +1,41 @@
+---
+- name: Ensure borg repo script dir exists
+  ansible.builtin.file:
+    path: "{{ path_root_home }}/scripts/borg/{{ repo.name }}"
+    mode: "{{ perms_dir_private }}"
+    state: directory
+- name: Create borg wrapper script
+  ansible.builtin.template:
+    src: wrapper.sh.j2
+    dest: "{{ path_root_home }}/scripts/borg/{{ repo.name }}/borg"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+- name: Create borg backup script
+  ansible.builtin.template:
+    src: backup.sh.j2
+    dest: "{{ path_root_home }}/scripts/borg/{{ repo.name }}/backup"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+- name: Create borg prune script
+  ansible.builtin.template:
+    src: prune.sh.j2
+    dest: "{{ path_root_home }}/scripts/borg/{{ repo.name }}/prune"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+- name: Create borg compact script
+  ansible.builtin.template:
+    src: compact.sh.j2
+    dest: "{{ path_root_home }}/scripts/borg/{{ repo.name }}/compact"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+- name: Create borg all-in-one script
+  ansible.builtin.template:
+    src: backup-prune-compact.sh.j2
+    dest: "{{ path_root_home }}/scripts/borg/{{ repo.name }}/backup-prune-compact"
+    mode: "{{ perms_script_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"

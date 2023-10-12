@@ -1,0 +1,29 @@
+---
+
+- name: Install NFS
+  become: true
+  ansible.builtin.package:
+    name: nfs-kernel-server
+    state: present
+
+- name: Setup NFS exports
+  become: true
+  ansible.builtin.template:
+    src: exports.j2
+    dest: /etc/exports
+    mode: "{{ perms_file_private }}"
+    owner: "{{ user_root }}"
+    group: "{{ group_root }}"
+
+- name: Export NFS shares
+  become: true
+  ansible.builtin.command:
+    cmd: exportfs -ra
+  changed_when: true
+
+- name: Restart NFS server
+  become: true
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    state: restarted
+    enabled: true

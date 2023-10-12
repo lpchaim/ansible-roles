@@ -1,0 +1,5 @@
+systemd_unit_path_rootless: ~/.config/systemd/user
+systemd_unit_path_rootful: /etc/systemd/system
+
+container_labels_autoupdate:
+  io.containers.autoupdate: registry

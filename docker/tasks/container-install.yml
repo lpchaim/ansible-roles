@@ -1,0 +1,62 @@
+- name: Ensure container is setup
+  vars:
+    dirs: "{{ container.dirs | default([]) }}"
+    templates: "{{ container.templates | default([]) }}"
+    rootful: "{{ container.needs_root | default(false) }}"
+    systemd_prefix: "container-"
+    systemd_name: "{{ systemd_prefix }}{{ container.name }}"
+  block:
+    - name: "Ensure {{ container.name_friendly }} directories exist"
+      when: dirs | length > 0
+      loop: "{{ dirs }}"
+      loop_control:
+        loop_var: dir
+      ansible.builtin.file:
+        path: "{{ dir }}"
+        state: directory
+        mode: "{{ perms_dir_default }}"
+        owner: "{{ user_default_id }}"
+        group: "{{ group_default_id }}"
+
+    - name: "Create {{ container.name_friendly }} templates"
+      ansible.builtin.template:
+        src: "{{ template.src }}"
+        dest: "{{ template.dest }}"
+        mode: "{{ perms_file_default }}"
+        owner: "{{ user_default_id }}"
+        group: "{{ group_default_id }}"
+      loop: "{{ templates }}"
+      loop_control:
+        loop_var: template
+      when: templates | length > 0
+
+    - name: "Ensure {{ container.name_friendly }} container is setup"
+      community.docker.docker_container:
+        state: present
+        restart_policy: unless-stopped
+        recreate: false
+        detach: false
+        name: "{{ container.name }}"
+        image: "{{ container.image }}"
+        command: "{{ container.command | default(omit) }}"
+        ports: "{{ container.ports | default(omit) }}"
+        env: "{{ container.env | default(omit) }}"
+        volumes: "{{ container.volumes | default([]) + common_volumes }}"
+        network_mode: "{{ container.network_mode | default('bridge') }}"
+        networks: "{{ container.networks | default(omit) }}"
+        labels: "{{ container.labels | default(omit) }}"
+        devices: "{{ container.devices | default(omit) }}"
+      register: container
+
+    # - name: Check if {{ container.name_friendly }} is running
+    #   ansible.builtin.command:
+    #     cmd: |
+    #       docker container inspect -f '{% raw %}{{ .State.Status }}{% endraw %}' {{ container.name }}
+    #   register: running
+
+    - name: "Ensure {{ container.name_friendly }} is running"
+      # when: container.changed # and running.stdout != 'running'
+      ansible.builtin.command:
+        cmd: "docker restart {{ container.name }}"
+      changed_when: false
+      become: true

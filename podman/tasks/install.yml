@@ -1,0 +1,17 @@
+---
+
+- name: Install container backend
+  ansible.builtin.include_tasks:
+    file: "backend-install.yml"
+    apply:
+      become: true
+      tags:
+        - install
+        - initial
+
+- name: Install containers
+  ansible.builtin.include_tasks:
+    file: "container-install.yml"
+  vars:
+    container: "{{ item }}"
+  loop: "{{ containers }}"

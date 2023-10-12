@@ -1,0 +1,15 @@
+- name: Ensure mount points exist
+  vars:
+    disks: "{{ disks | default([]) }}"
+  block:
+    - name: "Ensure {{ item.path }} is setup in fstab"
+      when: disks | length > 0
+      loop: "{{ disks }}"
+      become: true
+      ansible.posix.mount:
+        path: "{{ item.path }}"
+        src: "UUID={{ item.uuid }}"
+        fstype: "{{ item.fstype }}"
+        state: mounted
+        boot: true
+        opts: "{{ item.opts | default('defaults') }}"

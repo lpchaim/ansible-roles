@@ -1,0 +1,15 @@
+--- 
+
+- ansible.builtin.include_role:
+    name: ironicbadger.proxmox_nag_removal
+  tags:
+    - proxmox
+
+# - name: Enable masquerading
+#   become: true
+#   ansible.builtin.template:
+#     src: masquerading
+#     dest: /etc/network/interfaces.d/masquerading
+#     mode: "{{ perms_file_private }}"
+#     owner: "{{ user_root }}"
+#     group: "{{ group_root }}"

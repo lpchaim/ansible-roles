@@ -1,0 +1,284 @@
+common_args: &common_args {}
+  # networks:
+  #   - name: bridge
+common_env: &common_env
+  TZ: "{{ timezone }}"
+  PUID: "1000"
+  PGID: "1000"
+common_volumes:
+  - /etc/timezone:/etc/timezone:ro
+  - /etc/localtime:/etc/localtime:ro
+  - /dev/rtc:/dev/rtc:ro
+containers:
+  # DB/Storage
+  - name: influxdb
+    name_friendly: InfluxDB
+    image: influxdb:latest
+    ports:
+      - 8086:8086
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/influxdb:/etc/influxdb2"
+      - "{{ path_app_data }}/influxdb:/var/lib/influxdb2"
+    dirs:
+      - "{{ path_app_config }}/influxdb"
+      - "{{ path_app_data }}/influxdb"
+    <<: *common_args
+    networks:
+      - name: internal
+  - name: syncthing
+    name_friendly: Syncthing
+    image: lscr.io/linuxserver/syncthing:latest
+    ports:
+      - 8384:8384
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/syncthing:/config"
+      - "{{ path_app_data }}/syncthing:/data"
+    dirs:
+      - "{{ path_app_config }}/syncthing"
+      - "{{ path_app_data }}/syncthing"
+    <<: *common_args
+    networks:
+      - name: internal
+  # Security
+  # - name: crowdsec
+  #   name_friendly: Crowdsec
+  #   image: crowdsecurity/crowdsec
+  #   env:
+  #     <<: *common_env
+  #   volumes:
+  #     - "{{ path_app_config }}/crowdsec:/etc/crowdsec"
+  #     - "{{ path_app_logs }}/crowdsec:/var/log/nginx"
+  #     - "{{ path_app_data }}/crowdsec:/var/lib/crowdsec/data"
+  #   networks:
+  #     - name: external
+  #     - name: internal
+  # Networking
+  # - name: cloudflare-ddns
+  #   name_friendly: Cloudflare DDNS
+  #   image: oznu/cloudflare-ddns
+  #   env:
+  #     <<: *common_env
+  #     API_KEY: "{{ secret_cloudflare_api_token }}"
+  #     ZONE: "{{ domain }}"
+  #     INTERFACE: ens18
+  #     PROXIED: "true"
+  #     RRTYPE: AAAA
+  #   network_mode: host
+  # - name: traefik
+  #   name_friendly: Traefik
+  #   image: traefik:v2.9
+  #   ports:
+  #     - "{{ port_http_internal }}:80"
+  #     - "{{ port_https_internal }}:443"
+  #     - "8080:8080"
+  #   env:
+  #     <<: *common_env
+  #     CF_DNS_API_TOKEN: "{{ secret_cloudflare_api_token }}"
+  #   volumes:
+  #     - "{{ path_app_config }}/traefik:/etc/traefik"
+  #     - "{{ path_app_config }}/traefik/acme:/etc/traefik/acme"
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   dirs:
+  #     - "{{ path_app_config }}/traefik"
+  #     - "{{ path_app_config }}/traefik/acme"
+  #   templates:
+  #     - src: ../common/templates/traefik/dynamic.yml.j2
+  #       dest: "{{ path_app_config }}/traefik/dynamic.yml"
+  #   networks:
+  #     - name: external
+  # Downloaders
+  - name: qbittorrent
+    name_friendly: qBittorrent
+    image: lscr.io/linuxserver/qbittorrent
+    ports:
+      - "8081:8081"
+      - "6881:6881"
+      - "6881:6881/tcp"
+    env:
+      <<: *common_env
+      WEBUI_PORT: "8081"
+      DOCKER_MODS: ghcr.io/gabe565/linuxserver-mod-vuetorrent
+    volumes:
+      - "{{ path_app_config }}/qbittorrent:/config"
+      - "{{ path_storage }}/Downloads/Torrents:/downloads"
+    <<: *common_args
+    networks:
+      - name: external
+  # Arr suite
+  - name: sonarr
+    name_friendly: Sonarr
+    image: lscr.io/linuxserver/sonarr
+    ports:
+      - "8989:8989"
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/sonarr:/config"
+      - "{{ path_storage }}:/storage"
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  - name: radarr
+    name_friendly: Radarr
+    image: lscr.io/linuxserver/radarr
+    ports:
+      - "7878:7878"
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/radarr:/config"
+      - "{{ path_storage }}:/storage"
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  - name: bazarr
+    name_friendly: Bazarr
+    image: lscr.io/linuxserver/bazarr
+    ports:
+      - "6767:6767"
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/bazarr:/config"
+      - "{{ path_storage }}:/storage"
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  - name: prowlarr
+    name_friendly: Prowlarr
+    image: lscr.io/linuxserver/prowlarr
+    ports:
+      - "9696:9696"
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/prowlarr:/config"
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  # - name: jackett
+  #   name_friendly: Jackett
+  #   image: lscr.io/linuxserver/jackett
+  #   ports:
+  #     - "9117:9117"
+  #   env:
+  #     <<: *common_env
+  #   volumes:
+  #     - "{{ path_app_config }}/jackett:/config"
+  #     - "{{ path_storage }}:/storage"
+  #   <<: *common_args
+  #   networks:
+  #     - name: external
+  #     - name: internal
+  # - name: jellyfin
+  #   name_friendly: Jellyfin
+  #   image: lscr.io/linuxserver/jellyfin
+  #   ports:
+  #     - "8096:8096"
+  #     - "7359:7359"
+  #     - "1900:1900"
+  #   env:
+  #     <<: *common_env
+  #     DOCKER_MODS: "linuxserver/mods:jellyfin-opencl-intel"
+  #   volumes:
+  #     - "{{ path_app_config }}/jellyfin:/config"
+  #     - "{{ path_storage }}:/data"
+  #   devices:
+  #     - "/dev/dri:/dev/dri"
+  #   <<: *common_args
+  #   networks:
+  #     - name: external
+  #     - name: internal
+  - name: jellyseerr
+    name_friendly: Jellyseerr
+    image: fallenbagel/jellyseerr
+    ports:
+      - "5055:5055"
+    env:
+      <<: *common_env
+      LOG_LEVEL: warn
+    volumes:
+      - "{{ path_app_config }}/jellyseerr:/app/config"
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  # Misc
+  # - name: heimdall
+  #   name_friendly: Heimdall
+  #   image: lscr.io/linuxserver/heimdall
+  #   ports:
+  #     - "8002:80"
+  #     - "4432:443"
+  #   env:
+  #     <<: *common_env
+  #   volumes:
+  #     - "{{ path_app_config }}/heimdall:/config"
+  #   <<: *common_args
+  #   networks:
+  #     - name: external
+  #     - name: internal
+  - name: vscode
+    name_friendly: Visual Studio Code
+    image: lscr.io/linuxserver/code-server
+    ports:
+      - "8443:8443"
+    env:
+      <<: *common_env
+      PASSWORD: "{{ secret_vscode_password }}"
+      PROXY_DOMAIN: "code.{{ domain }}"
+    volumes:
+      - "{{ path_app_config }}/vscode:/config"
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  - name: watchtower
+    name_friendly: Watchtower
+    image: containrrr/watchtower
+    command: --schedule "0 2 * * *" --cleanup
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  # Management
+  - name: yacht
+    name_friendly: Yacht
+    image: selfhostedpro/yacht
+    ports:
+      - 8000:8000
+    env:
+      <<: *common_env
+      # DOCKER_HOST: unix:$XDG_RUNTIME_DIR/podman/podman.sock
+    volumes:
+      - "{{ path_app_config }}/yacht:/config"
+      - /var/run/docker.sock:/var/run/docker.sock
+    <<: *common_args
+    networks:
+      - name: external
+      - name: internal
+  - name: adguardhome-sync
+    name_friendly: AdGuardHome Sync
+    image: lscr.io/linuxserver/adguardhome-sync:latest
+    ports:
+      - 8082:8082
+    env:
+      <<: *common_env
+      CONFIGFILE: /config/adguardhome-sync.yaml
+    volumes:
+      - "{{ path_app_config }}/adguardhome-sync:/config"
+    templates:
+      - src: ../common/templates/adguardhome-sync/adguardhome-sync.yaml
+        dest: "{{ path_app_config }}/adguardhome-sync/adguardhome-sync.yaml"
+    <<: *common_args
+    networks:
+      - name: internal
