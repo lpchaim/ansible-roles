@@ -5,6 +5,7 @@
 - name: Update nix channels
   ansible.builtin.command:
     cmd: nix-channel --update
-- name: Install home-mananger
+- name: Install home-manager
   ansible.builtin.command:
     cmd: nix-shell '<home-manager>' -A install
+  notify: home_manager_init
