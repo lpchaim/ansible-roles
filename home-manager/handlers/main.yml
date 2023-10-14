@@ -3,7 +3,7 @@
   environment:
     PATH: "{{ env_path }}"
   ansible.builtin.command:
-    cmd: home-manager init
+    cmd: home-manager init "{{ home_manager_root }}"
   register: init
   changed_when: "{{ init.stdout_lines | map('match', 'Created') is any }}"
 - name: Apply home-manager customizations
