@@ -3,7 +3,7 @@
   home.packages = with pkgs; [
     btop
     cheat
-    curl
+    curl 
     du-dust
     duf
     fd
@@ -23,11 +23,19 @@
   programs = {
     bat.enable = true;
     broot.enable = true;
-    dircolors = {
+    carapace.enable = true;
+    dircolors.enable = true;
+    direnv = {
       enable = true;
-      enableBashIntegration = true;
-      enableZshIntegration = true;
+      nix-direnv.enable = true;
+    };
+    fzf.enable = true;
+    mcfly = {
+      enable = true;
+      fuzzySearchFactor = 2;
+      keyScheme = "vim";
     };
     ripgrep.enable = true;
+    zoxide.enable = true;
   };
 }

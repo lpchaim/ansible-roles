@@ -139,7 +139,7 @@ let light_theme = {
 
 # The default config record. This is where much of your global configuration is setup.
 $env.config = {
-    show_banner: true # true or false to enable or disable the welcome banner at startup
+    show_banner: false # true or false to enable or disable the welcome banner at startup
 
     ls: {
         use_ls_colors: true # use the LS_COLORS environment variable to colorize output
@@ -202,11 +202,11 @@ $env.config = {
         case_sensitive: false # set to true to enable case-sensitive completions
         quick: true    # set this to false to prevent auto-selecting completions when only one remains
         partial: true    # set this to false to prevent partial filling of the prompt
-        algorithm: "prefix"    # prefix or fuzzy
+        algorithm: "fuzzy"    # prefix or fuzzy
         external: {
             enable: true # set to false to prevent nushell looking into $env.PATH to find more suggestions, `false` recommended for WSL users as this look up may be very slow
             max_results: 100 # setting it lower can improve completion performance at the cost of omitting some options
-            completer: null # check 'carapace_completer' above as an example
+            # completer: null # check 'carapace_completer' above as an example
         }
     }
 
@@ -221,7 +221,7 @@ $env.config = {
         vi_normal: block # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (underscore is the default)
     }
 
-    color_config: $dark_theme # if you want a more interesting theme, you can replace the empty record with `$dark_theme`, `$light_theme` or another custom record
+    # color_config: $dark_theme # if you want a more interesting theme, you can replace the empty record with `$dark_theme`, `$light_theme` or another custom record
     use_grid_icons: true
     footer_mode: "25" # always, never, number_of_rows, auto
     float_precision: 2 # the precision for displaying floats in tables

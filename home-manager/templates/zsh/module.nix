@@ -14,11 +14,11 @@
     '';
     oh-my-zsh = {
       enable = true;
-      theme = "agnoster";
       plugins = [
         "git"
         "gitfast"
       ];
+      theme = "agnoster";
     };
   };
 }

@@ -17,6 +17,14 @@
       apply: 
         environment:
           PATH: "{{ env_path }}"
+  - name: Init home-manager
+    environment:
+      PATH: "{{ env_path }}"
+    ansible.builtin.command:
+      cmd: home-manager init
+    register: init
+    changed_when: "'creating' in (init.stdout | lower)"
+    notify: home_manager_switch 
   - name: Import home-manager customizations
     ansible.builtin.include_tasks:
       file: customizations.yml
