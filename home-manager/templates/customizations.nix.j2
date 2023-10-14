@@ -1,8 +1,0 @@
-{ config, pkgs, ... }:
-{
-  imports = [
-{% for module_name in (modules | select()) %}
-    ./{{ module_name }}/module.nix
-{% endfor %}
-  ];
-}

@@ -1,5 +1,0 @@
-home_manager_root: "{{ ansible_env.HOME }}/.config/home-manager"
-git_name: ""
-git_email: ""
-modules_include: [] # If empty, includes all found modules
-modules_exclude: []
