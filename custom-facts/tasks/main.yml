@@ -1,0 +1,22 @@
+---
+- tags:
+    - facts
+  block:
+    - name: Check if it's a WSL deployment
+      ansible.builtin.command:
+        cmd: which wsl.exe
+      failed_when: false
+      changed_when: false
+      register: wsl
+    - name: Get actual user shell from passwd file
+      ansible.builtin.shell:
+        cmd: >-
+          cat /etc/passwd
+          | grep {{ ansible_env.USER }}
+          | awk --field-separator=':' '{print $NF}'
+      register: shell
+      changed_when: false
+    - name: Register facts
+      ansible.builtin.set_fact:
+        is_wsl: "{{ wsl.rc == 0 }}"
+        user_shell: "{{ shell.stdout }}"
