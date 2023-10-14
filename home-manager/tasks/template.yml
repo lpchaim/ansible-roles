@@ -4,7 +4,7 @@
   environment:
     PATH: "{{ env_path }}"
   ansible.builtin.command:
-    cmd: home-manager init
+    cmd: home-manager init "{{ home_manager_root }}"
   register: init
   changed_when: "'creating' in (init.stdout | lower)"
   notify: home_manager_switch 

@@ -8,4 +8,3 @@
 - name: Install home-manager
   ansible.builtin.command:
     cmd: nix-shell '<home-manager>' -A install
-  notify: home_manager_init
