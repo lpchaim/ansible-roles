@@ -16,7 +16,14 @@
           | awk --field-separator=':' '{print $NF}'
       register: shell
       changed_when: false
+    - name: Get logged in user's group name
+      ansible.builtin.command:
+        cmd: id -gn
+      failed_when: false
+      changed_when: false
+      register: group
     - name: Register facts
       ansible.builtin.set_fact:
         is_wsl: "{{ wsl.rc == 0 }}"
+        user_group: "{{ group.stdout }}"
         user_shell: "{{ shell.stdout }}"

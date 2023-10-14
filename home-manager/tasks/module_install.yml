@@ -4,7 +4,7 @@
     path: "{{ home_manager_root }}/{{ module_name }}" 
     state: directory
     owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    group: "{{ user_group }}"
   notify: home_manager_switch
 - name: Install {{ module_name }} module
   with_fileglob:

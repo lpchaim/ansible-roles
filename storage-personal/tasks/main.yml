@@ -17,7 +17,7 @@
       path: "{{ ansible_env.HOME }}/.steam/steam/steamapps/compatdata"
       state: directory
       owner: "{{ lookup('env', 'USER') }}"
-      group: "{{ lookup('env', 'USER') }}"
+      group: "{{ user_group }}"
   - name: Setup Steam compatdata
     with_items: "{{ mounts | selectattr('steam_libraries', 'defined') }}"
     ansible.builtin.include_tasks:
