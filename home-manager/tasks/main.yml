@@ -2,29 +2,33 @@
 - tags:
     - home-manager
   block:
-  - name: Check if home-manager is installed
-    environment:
-      PATH: "{{ env_path }}"
-    ansible.builtin.command:
-      cmd: which home-manager
-    register: installed
-    failed_when: false
-    changed_when: false
-  - name: Install home-manager
-    when: installed.rc != 0
-    ansible.builtin.include_tasks:
-      file: install.yml
-      apply: 
-        environment:
-          PATH: "{{ env_path }}"
-  - name: Init home-manager
-    environment:
-      PATH: "{{ env_path }}"
-    ansible.builtin.command:
-      cmd: home-manager init
-    register: init
-    changed_when: "'creating' in (init.stdout | lower)"
-    notify: home_manager_switch 
-  - name: Import home-manager customizations
-    ansible.builtin.include_tasks:
-      file: customizations.yml
+    - tags: install
+      block:
+        - name: Check if home-manager is installed
+          environment:
+            PATH: "{{ env_path }}"
+          ansible.builtin.command:
+            cmd: which home-manager
+          register: installed
+          failed_when: false
+          changed_when: false
+        - name: Install home-manager
+          when: installed.rc != 0
+          ansible.builtin.include_tasks:
+            file: install.yml
+            apply: 
+              environment:
+                PATH: "{{ env_path }}"
+    - tags: config
+      block:
+        - name: Init home-manager
+          environment:
+            PATH: "{{ env_path }}"
+          ansible.builtin.command:
+            cmd: home-manager init
+          register: init
+          changed_when: "'creating' in (init.stdout | lower)"
+          notify: home_manager_switch 
+        - name: Import home-manager customizations
+          ansible.builtin.include_tasks:
+            file: customizations.yml
