@@ -1,0 +1,17 @@
+---
+- name: Create {{ module_name }} folder
+  ansible.builtin.file:
+    path: "{{ home_manager_root }}/{{ module_name }}" 
+    state: directory
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+  notify: home_manager_switch
+- name: Install {{ module_name }} module
+  with_fileglob:
+    - "templates/{{ module_name }}/*"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ home_manager_root }}/{{ module_name }}/{{ file | basename }}"
+  notify: home_manager_switch
