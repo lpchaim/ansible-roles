@@ -1,0 +1,30 @@
+
+---
+- name: Init home-manager
+  environment:
+    PATH: "{{ env_path }}"
+  ansible.builtin.command:
+    cmd: home-manager init
+  register: init
+  changed_when: "'creating' in (init.stdout | lower)"
+  notify: home_manager_switch 
+- name: Get module folders
+  ansible.builtin.shell:
+    cmd: >-
+      find {{ role_path }}/templates/*
+      -type d
+      -exec basename {} \;
+  register: find_modules
+  changed_when: false
+- name: Set modules according to includes and excludes
+  ansible.builtin.set_fact:
+    modules: "{{ ((modules_include | length > 0) | ternary(modules_include, find_modules.stdout_lines)) | difference(modules_exclude) }}"
+- name: Setup module
+  with_items: "{{ modules }}"
+  loop_control:
+    loop_var: module
+  ansible.builtin.include_tasks:
+    file: module_install.yml
+    apply:
+      vars:
+        module_name: "{{ module }}"

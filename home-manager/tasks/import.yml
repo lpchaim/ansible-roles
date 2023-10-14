@@ -1,0 +1,16 @@
+---
+- name: Setup customizations
+  ansible.builtin.template:
+    src: customizations.nix.j2
+    dest: "{{ home_manager_root }}/customizations.nix"
+- name: Check if customizations already imported 
+  ansible.builtin.command:
+    cmd: grep --quiet '# Ansible' '{{ home_manager_root }}/home.nix'
+  register: home_nix_grep
+  failed_when: false
+  changed_when: false
+- name: Import customizations into home.nix
+  when: home_nix_grep.rc != 0
+  ansible.builtin.shell:
+    cmd: >-
+      sed --in-place 's|^}$|\n  # Ansible\n  imports = [ ./customizations.nix ];\n}|g' '{{ home_manager_root }}/home.nix'
