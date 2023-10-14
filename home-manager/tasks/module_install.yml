@@ -1,7 +1,7 @@
 ---
 - name: Create {{ module_name }} folder
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.config/home-manager/{{ module_name }}" 
+    path: "{{ home_manager_root }}/{{ module_name }}" 
     state: directory
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
@@ -13,5 +13,5 @@
     loop_var: file
   ansible.builtin.template:
     src: "{{ file }}"
-    dest: "{{ ansible_env.HOME }}/.config/home-manager/{{ module_name }}/{{ file | basename }}"
+    dest: "{{ home_manager_root }}/{{ module_name }}/{{ file | basename }}"
   notify: home_manager_switch

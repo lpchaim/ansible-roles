@@ -11,12 +11,12 @@
 - name: Setup customizations
   ansible.builtin.template:
     src: customizations.nix
-    dest: "{{ ansible_env.HOME }}/.config/home-manager/customizations.nix"
+    dest: "{{ home_manager_root }}/customizations.nix"
   vars:
     modules_in_use: "{{ modules | select() | map('regex_replace', '^(.*)$', '    ./\\1/module.nix') | join('\n') }}"
 - name: Check if customizations already imported 
   ansible.builtin.command:
-    cmd: grep --quiet '# Ansible' '{{ ansible_env.HOME }}/.config/home-manager/home.nix'
+    cmd: grep --quiet '# Ansible' '{{ home_manager_root }}/home.nix'
   register: home_nix_grep
   failed_when: false
   changed_when: false
@@ -24,4 +24,4 @@
   when: home_nix_grep.rc != 0
   ansible.builtin.shell:
     cmd: >-
-      sed --in-place 's|^}$|\n  # Ansible\n  imports = [ ./customizations.nix ];\n}|g' '{{ ansible_env.HOME }}/.config/home-manager/home.nix'
+      sed --in-place 's|^}$|\n  # Ansible\n  imports = [ ./customizations.nix ];\n}|g' '{{ home_manager_root }}/home.nix'
