@@ -14,13 +14,7 @@
   ansible.builtin.template:
     src: 6to4.service.j2
     dest: /lib/systemd/system/6to4-http.service
-
-- name: Ensure HTTP IPv6 to IPv4 tunnel is enabled and running
-  become: true
-  ansible.builtin.systemd:
-    name: 6to4-http
-    enabled: true
-    state: restarted
+  notify: ipv6toipv4.http.restart
 
 - name: Ensure HTTPS IPv6 to IPv4 tunnel service is setup
   become: true
@@ -30,10 +24,4 @@
   ansible.builtin.template:
     src: 6to4.service.j2
     dest: /lib/systemd/system/6to4-https.service
-
-- name: Ensure HTTPS IPv6 to IPv4 tunnel is enabled and running
-  become: true
-  ansible.builtin.systemd:
-    name: 6to4-https
-    enabled: true
-    state: restarted
+  notify: ipv6toipv4.https.restart

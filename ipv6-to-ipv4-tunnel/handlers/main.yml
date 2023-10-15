@@ -1,0 +1,17 @@
+---
+
+- name: Ensure HTTP IPv6 to IPv4 tunnel is enabled and running
+  become: true
+  ansible.builtin.systemd:
+    name: 6to4-http
+    enabled: true
+    state: restarted
+  listen: ipv6toipv4.http.restart
+
+- name: Ensure HTTP IPv6 to IPv4 tunnel is enabled and running
+  become: true
+  ansible.builtin.systemd:
+    name: 6to4-http
+    enabled: true
+    state: restarted
+  listen: ipv6toipv4.https.restart
