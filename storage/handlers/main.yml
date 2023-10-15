@@ -1,0 +1,16 @@
+---
+
+- name: Export NFS shares
+  become: true
+  ansible.builtin.command:
+    cmd: exportfs -ra
+  changed_when: true
+  listen: nfs.export
+
+- name: Restart NFS server
+  become: true
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    state: restarted
+    enabled: true
+  listen: nfs.restart
