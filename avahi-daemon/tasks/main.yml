@@ -1,0 +1,6 @@
+---
+
+- name: Enable
+  when: action == 'enable'
+  ansible.builtin.include_tasks:
+    file: enable.yml

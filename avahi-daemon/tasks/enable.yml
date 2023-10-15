@@ -1,0 +1,7 @@
+---
+
+- name: Install avahi-daemon
+  ansible.builtin.package:
+    name: avahi-daemon
+    state: present
+  notify: avahi.restart
