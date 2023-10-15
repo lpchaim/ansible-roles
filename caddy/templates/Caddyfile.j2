@@ -1,14 +1,14 @@
 {
-	# dynamic_dns {
-	# 	provider cloudflare {{ secret_cloudflare_api_token }}
-	# 	domains {
-	# 		{{ domain }}
-	# 	}
-	# 	check_interval 5m
-	# 	versions ipv6
-	# 	ip_source simple_http https://ipv6.icanhazip.com/
-	# 	ip_source simple_http https://api6.ipify.org/
-	# }
+	dynamic_dns {
+		provider cloudflare {{ secret_cloudflare_api_token }}
+		domains {
+			{{ domain }} @
+		}
+		check_interval 5m
+		versions ipv6
+		ip_source simple_http https://ipv6.icanhazip.com/
+		ip_source simple_http https://api6.ipify.org/
+	}
 
 	servers {
 		trusted_proxies cloudflare {
@@ -18,7 +18,7 @@
 
 	crowdsec {
 			api_url http://10.10.2.30:8080
-			api_key 3958d6d7055480698979468d180eebd4
+			api_key {{ secret_crowdsec_bouncer_api_key }}
 			# ticker_interval 15s
 			# disable_streaming
 			# enable_hard_fails
