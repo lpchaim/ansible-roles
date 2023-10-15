@@ -1,5 +1,17 @@
 ---
 
+- name: Get OS ID
+  ansible.builtin.shell:
+    cmd: >- 
+      cat /etc/os-release
+      | grep ^ID=
+      | cut --delimiter="=" --fields=2
+  register: os
+
+- name: Register OS ID
+  ansible.builtin.set_fact:
+    os_id: os.stdout
+
 - name: Ensure containers are present
   ansible.builtin.include_tasks:
     file: "install.yml"
