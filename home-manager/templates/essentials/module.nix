@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 {
+  fonts.fontconfig.enable = true;
+  nixpkgs.config.allowUnfree = true;
+
   home.packages = with pkgs; [
     btop
     cheat
