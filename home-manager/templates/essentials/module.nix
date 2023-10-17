@@ -29,6 +29,15 @@
       enable = true;
       nix-direnv.enable = true;
     };
+    eza = {
+      enable = true;
+      enableAliases = true;
+      extraOptions = [
+        "--group-directories-first"
+      ];
+      git = true;
+      icons = true;
+    };
     fzf.enable = true;
     mcfly = {
       enable = true;
