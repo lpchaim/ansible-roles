@@ -1,6 +1,5 @@
 - name: Apply home-manager customizations
-  listen: home_manager_switch
-  environment:
-    PATH: "{{ env_path }}"
+  listen: home_manager.switch
+  environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
   ansible.builtin.command:
-    cmd: home-manager switch
+    cmd: "home-manager init --switch '{{ home_manager_root }}'"

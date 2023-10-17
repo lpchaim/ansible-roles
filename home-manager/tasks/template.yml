@@ -1,13 +1,17 @@
-
 ---
 - name: Init home-manager
-  environment:
-    PATH: "{{ env_path }}"
+  environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
   ansible.builtin.command:
     cmd: home-manager init "{{ home_manager_root }}"
   register: init
   changed_when: "'creating' in (init.stdout | lower)"
-  notify: home_manager_switch 
+  notify: home_manager.switch 
+- name: Patch home path
+  notify: home_manager.switch
+  ansible.builtin.lineinfile:
+    path: "{{ home_manager_root }}/home.nix"
+    regexp: ^\s*home.homeDirectory
+    line: "  home.homeDirectory =  {{ home_path | expanduser }};"
 - name: Get module folders
   ansible.builtin.shell:
     cmd: >-

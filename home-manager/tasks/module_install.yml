@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ ansible_env.USER }}"
     group: "{{ user_group }}"
-  notify: home_manager_switch
+  notify: home_manager.switch
 - name: Install {{ module_name }} module
   with_fileglob:
     - "templates/{{ module_name }}/*"
@@ -14,4 +14,4 @@
   ansible.builtin.template:
     src: "{{ file }}"
     dest: "{{ home_manager_root }}/{{ module_name }}/{{ file | basename }}"
-  notify: home_manager_switch
+  notify: home_manager.switch
