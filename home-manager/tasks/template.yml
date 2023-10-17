@@ -2,7 +2,7 @@
 - name: Init home-manager
   environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
   ansible.builtin.command:
-    cmd: "{{all_env}} home-manager init '{{ home_manager_root }}'"
+    cmd: home-manager init "{{ home_manager_root }}"
   register: init
   changed_when: "'creating' in (init.stdout | lower)"
   notify: home_manager.switch 

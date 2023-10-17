@@ -1,4 +1,3 @@
 environment_default:
   PATH: "{{ ansible_env.PATH }}:/nix/var/nix/profiles/default/bin:{{ ansible_env.HOME }}/.nix-profile/bin"
   HOME: "{{ home_path }}"
-all_env: "PATH={{ environment_default.PATH }} HOME={{ environment_default.HOME }}"
