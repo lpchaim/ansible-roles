@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 {
+  fonts.fontconfig.enable = true;
+  nixpkgs.config.allowUnfree = true;
+
   home.packages = with pkgs; [
     btop
     cheat
@@ -28,6 +31,15 @@
     direnv = {
       enable = true;
       nix-direnv.enable = true;
+    };
+    eza = {
+      enable = true;
+      enableAliases = true;
+      extraOptions = [
+        "--group-directories-first"
+      ];
+      git = true;
+      icons = true;
     };
     fzf.enable = true;
     mcfly = {

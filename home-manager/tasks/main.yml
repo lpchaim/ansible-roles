@@ -6,21 +6,19 @@
         - install
         - no-ci
       block:
-        - name: check if home-manager is installed
-          environment:
-            path: "{{ env_path }}"
+        - name: Check if home-manager is installed
+          environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
           ansible.builtin.command:
             cmd: which home-manager
           register: installed
           failed_when: false
           changed_when: false
-        - name: install home-manager
+        - name: Install home-manager
           when: installed.rc != 0
           ansible.builtin.include_tasks:
             file: install.yml
             apply: 
-              environment:
-                path: "{{ env_path }}"
+              environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
     - name: Template modules
       tags: 
         - config

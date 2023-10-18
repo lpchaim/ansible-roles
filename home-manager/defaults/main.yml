@@ -1,5 +1,8 @@
-home_manager_root: "{{ ansible_env.HOME }}/.config/home-manager"
+enable_flakes: true
 git_name: ""
 git_email: ""
+home_path_override: "{{ ansible_env.HOME }}"
+home_path: "{{ home_path_override | expanduser }}"
+home_manager_root: "{{ home_path | expanduser }}/.config/home-manager"
 modules_include: [] # If empty, includes all found modules
 modules_exclude: []
