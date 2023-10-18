@@ -15,7 +15,7 @@
 - name: Get module folders
   ansible.builtin.shell:
     cmd: >-
-      find {{ role_path }}/templates/*
+      find {{ role_path }}/templates/repo/*
       -type d
       -exec basename {} \;
   register: find_modules

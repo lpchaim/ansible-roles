@@ -1,7 +1,7 @@
 ---
 - name: Setup customizations
   ansible.builtin.template:
-    src: customizations.nix.j2
+    src: repo/customizations.nix
     dest: "{{ home_manager_root }}/customizations.nix"
 - name: Check if customizations already imported 
   ansible.builtin.command:

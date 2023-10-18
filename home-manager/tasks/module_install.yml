@@ -8,7 +8,7 @@
   notify: home_manager.switch
 - name: Install {{ module_name }} module
   with_fileglob:
-    - "templates/{{ module_name }}/*"
+    - "templates/repo/{{ module_name }}/*"
   loop_control:
     loop_var: file
   ansible.builtin.template:
