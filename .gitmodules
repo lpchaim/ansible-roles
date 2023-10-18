@@ -1,0 +1,3 @@
+[submodule "home-manager/repo"]
+	path = home-manager/repo
+	url = git@github.com:lpchaim/home-manager.git
