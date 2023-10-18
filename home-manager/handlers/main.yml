@@ -1,3 +1,9 @@
+- name: Remove flake information if necessary
+  listen: home_manager.switch
+  when: not enable_flakes
+  environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
+  ansible.builtin.command:
+    cmd: rm -f '{{ home_manager_root }}/flake.nix' '{{ home_manager_root }}/flake.lock'
 - name: Apply home-manager customizations
   listen: home_manager.switch
   environment: "{{ {} | ansible.builtin.combine(environment_default) }}"
