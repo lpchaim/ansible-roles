@@ -1,0 +1,32 @@
+---
+
+- name: Get control node SSH key
+  ansible.builtin.command:
+    cmd: "cat ~/.ssh/id_rsa.pub"
+  register: ssh_key
+  delegate_to: localhost
+  changed_when: false
+
+- name: Validate SSH key
+  when: "'ssh-rsa' not in ssh_key.stdout"
+  ansible.builtin.fail:
+    msg: Ensure you have a SSH key
+
+- name: Build vmid regexp
+  when: vmids | length > 0
+  ansible.builtin.set_fact:
+    vmid_regexp: "| grep -E '^({{ vmids | join('|') }})$'"
+
+- name: Replicate SSH key
+  ansible.builtin.shell:
+    cmd: >-
+      pct list | grep running | awk '{ print $1 }'
+      {{ vmid_regexp | default('') }}
+      | xargs --no-run-if-empty --replace='{}'
+      pct exec {} -- sh -c '
+      {{ cmd_pre }}
+      KEY=$(echo "{{ ssh_key.stdout }}" | awk "{ print $2 }");
+      if [ -z "$(grep "$KEY" ~/.ssh/authorized_keys)" ]; then echo "{{ ssh_key.stdout }}" >> ~/.ssh/authorized_keys && echo changed; fi
+      '
+  register: out
+  changed_when: "'changed' in out.stdout"
