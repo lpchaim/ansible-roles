@@ -1,0 +1,2 @@
+nixos_channel: nixos-unstable
+nixos_config: ''

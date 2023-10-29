@@ -1,0 +1,24 @@
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/{{ nixos_channel }}";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  # Based on https://github.com/NixOS/nixpkgs/issues/227416#issuecomment-1519127999
+  outputs = { nixpkgs, home-manager, ... }: {
+    nixosConfigurations.pve-lxc = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ./configuration.nix
+        home-manager.nixosModules.home-manager {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.{{ vm_user }} = import ./home.nix;
+        }
+      ];
+    };
+  };
+}

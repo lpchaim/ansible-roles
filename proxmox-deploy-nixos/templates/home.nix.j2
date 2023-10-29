@@ -1,0 +1,43 @@
+{ config, pkgs, lib, ... }:
+
+{
+  # Home Manager needs a bit of information about you and the paths it should
+  # manage.
+  home.username = "{{ vm_user }}";
+  home.homeDirectory = {% if vm_user == 'root' %}lib.mkForce /root{% else %}/home/{{ vm_user }}{% endif %};
+
+  # This value determines the Home Manager release that your configuration is
+  # compatible with. This helps avoid breakage when a new Home Manager release
+  # introduces backwards incompatible changes.
+  home.stateVersion = "23.05"; # Please read the comment before changing.
+
+  home.packages = [
+    (pkgs.writeShellScriptBin "my-hello" ''
+      echo "source /etc/set-environment"
+    '')
+  ];
+
+  # Home Manager is pretty good at managing dotfiles. The primary way to manage
+  # plain files is through 'home.file'.
+  home.file = {};
+
+  # home.enableNixpkgsReleaseCheck = false;
+  home.sessionVariables = {
+    # EDITOR = "emacs";
+  };
+
+  # Let Home Manager install and manage itself.
+  programs.home-manager.enable = true;
+
+  # User programs
+  programs = {
+    helix.enable = true;
+    tmux.enable = true;
+    zsh = {
+      enable = true;
+      initExtra = ''
+        source /etc/set-environment
+      '';
+    };
+  };
+}

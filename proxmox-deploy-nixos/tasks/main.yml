@@ -1,0 +1,134 @@
+---
+
+- name: Dependencies
+  block:
+    - name: Ensure pip3 is installed
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+
+    - name: Ensure required Python modules are installed
+      ansible.builtin.pip:
+        name:
+          - requests
+          - proxmoxer
+
+- name: Local commands
+  delegate_to: localhost
+  block:
+    - name: Ensure nix command is available
+      environment:
+        PATH: "{{ env_path }}"
+      ansible.builtin.shell: 
+        cmd: which nix
+      register: which_nix
+      failed_when: which_nix.rc != 0
+      changed_when: false
+
+    - name: Create temporary directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: "{{ proxmox_node_name }}_{{ vm_hostname }}"
+      register: tmp
+    
+    - name: Copy over config files
+      with_fileglob:
+        - "templates/*"
+      loop_control:
+        loop_var: file
+      ansible.builtin.template:
+        src: "{{ file }}"
+        dest: "{{ tmp.path }}/{{ file | basename | replace('.j2', '') }}"
+
+    - name: Build NixOS template
+      environment:
+        PATH: "{{ env_path }}"
+      notify: cleanup.local
+      ansible.builtin.shell:
+        chdir: "{{ tmp.path }}"
+        cmd: >-
+          PATH="{{ env_path }}"
+          nix build .#nixosConfigurations.pve-lxc.config.system.build.tarball
+    
+    - name: Copy over lock file
+      ansible.builtin.copy:
+        src: "{{ tmp.path }}/flake.lock"
+        dest: "{{ role_path }}/templates/lock/{{ vm_hostname }}.lock"
+    
+    - name: Get host SSH key
+      ansible.builtin.set_fact:
+        host_pubkey: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+- name: Upload template
+  notify: cleanup.proxmox
+  ansible.builtin.copy:
+    src: "{{ tmp.path }}/result/tarball/nixos-system-x86_64-linux.tar.xz"
+    dest: "{{ proxmox_template_path }}/nixos-{{ vm_hostname }}.tar.xz"
+
+- name: Create LXC
+  notify: cleanup.proxmox
+  community.general.proxmox:
+    state: present
+    # force: true
+    vmid: "{{ vm_id }}"
+    node: "{{ proxmox_node }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ proxmox_password }}"
+    api_host: "{{ proxmox_url }}"
+    password: "{{ lookup('ansible.builtin.password', '/dev/null', seed=vm_hostname) }}"
+    hostname: "{{ vm_hostname }}"
+    ostemplate: "{{ proxmox_storage }}:vztmpl/nixos-{{ vm_hostname }}.tar.xz"
+    memory: 1024
+    swap: 256
+    disk: 8
+    storage: local-lvm
+    cores: 4
+    netif:
+      net0: name=eth0,bridge=vmbr0,ip=dhcp,ip6=dhcp,type=veth
+    # mounts: # '{"mp0":"local-lvm:8,mp=/storage"}'
+      # mp0: "local-lvm:8,mp=/mnt/test/"
+    unprivileged: "{{ vm_unprivileged }}"
+    # cmode: console
+    features:
+      - nesting=1
+    pubkey: "{{ host_pubkey }}"
+  register: lxc
+
+- name: Ensure LXC is running
+  community.general.proxmox:
+    state: started
+    vmid: "{{ vm_id }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ proxmox_password }}"
+    api_host: "{{ proxmox_url }}"
+
+# - name: Retrieve LXC info
+#   community.general.proxmox_vm_info:
+#     vmid: "{{ vm_id }}"
+#     node: "{{ proxmox_node }}"
+#     api_user: "{{ proxmox_user }}"
+#     api_password: "{{ proxmox_password }}"
+#     api_host: "{{ proxmox_url }}"
+#   register: lxc_info
+
+# - ansible.builtin.debug:
+#     var: lxc_info
+
+# - name: Copy over configuration file
+#   delegate_to: localhost
+#   with_items:
+#     - configuration.nix
+#     - home.nix
+#   loop_control:
+#     loop_var: file
+#   ansible.builtin.shell:
+#     cmd: >-
+#       rsync
+#       -e "ssh -o StrictHostKeyChecking=no"
+#       -r "{{ tmp.path }}/{{ file }}" "root@{{ vm_hostname }}:/etc/nixos/"
+
+- name: Add host to rebuild group
+  ansible.builtin.add_host:
+    name: "{{ vm_hostname }}"
+    groups:
+      - nixos_to_rebuild

@@ -1,0 +1,14 @@
+---
+
+- name: Clean up locally generated template
+  listen: cleanup.local
+  delegate_to: localhost
+  ansible.builtin.file:
+    state: absent
+    path: "{{ tmp.path }}"
+
+- name: Clean up uploaded template
+  listen: cleanup.proxmox
+  ansible.builtin.file:
+    state: absent
+    path: "{{ proxmox_template_path }}/nixos-{{ vm_hostname }}.tar.xz"

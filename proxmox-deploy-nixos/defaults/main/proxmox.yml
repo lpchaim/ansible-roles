@@ -1,0 +1,8 @@
+proxmox_node: "{{ proxmox_node_name }}"
+proxmox_url: "{{ proxmox_node_host }}"
+proxmox_user: "{{ secret_proxmox_root_user }}"
+proxmox_password: "{{ secret_proxmox_root_password }}"
+proxmox_token_id: "{{ secret_proxmox_root_token_id }}"
+proxmox_token_secret: "{{ secret_proxmox_root_token_secret }}"
+proxmox_template_path: "/var/lib/vz/template/cache"
+proxmox_storage: "local"

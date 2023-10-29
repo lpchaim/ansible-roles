@@ -1,0 +1,13 @@
+---
+
+- name: Update NixOS channels
+  environment:
+    PATH: "{{ env_path }}"
+  ansible.builtin.shell:
+    cmd: nixos-channel --update
+
+- name: Rebuild NixOS configuration
+  environment:
+    PATH: "{{ env_path }}"
+  ansible.builtin.shell:
+    cmd: nixos-rebuild switch

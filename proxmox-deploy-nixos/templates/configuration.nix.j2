@@ -1,0 +1,46 @@
+{ pkgs, modulesPath, lib, ... }:
+
+{
+  imports = [
+    (modulesPath + "/virtualisation/proxmox-lxc.nix")
+  ];
+
+  # Proxmox settings
+  proxmoxLXC = {
+    manageNetwork = false;
+    privileged = {{ (not vm_unprivileged) | string | lower }};
+  };
+
+  # System settings
+  system.autoUpgrade.enable = true;
+  system.stateVersion = "23.05";
+  nix.gc.automatic = true;
+  nix.gc.options = "--delete-older-than 7d";
+
+  # User settings
+  # users.defaultUserShell = pkgs.zsh;
+  # users.users.{{ vm_user }}.shell = lib.mkForce pkgs.zsh;
+  # users.users.{{ vm_user }}.useDefaultShell = lib.mkForce true;
+  
+  # Programs
+  environment.systemPackages = with pkgs; [
+    bash
+    busybox
+    curl
+    helix
+    tmux
+    (python311.withPackages(p: with p; [
+      requests
+    ]))
+    vim
+    wget
+    zsh
+  ];
+  programs.vim.defaultEditor = true;
+  programs.zsh.enable = true;
+{% if nixos_config | length > 0 %}
+
+  ## Specific configuration
+  {{ nixos_config }}
+{% endif %}
+}
