@@ -17,18 +17,31 @@
 	}
 
 	crowdsec {
-			api_url http://10.10.2.30:8080
-			api_key {{ secret_crowdsec_bouncer_api_key }}
-			# ticker_interval 15s
-			# disable_streaming
-			# enable_hard_fails
+		api_url http://10.10.2.30:8080
+		api_key {{ secret_crowdsec_bouncer_api_key }}
+		# ticker_interval 15s
+		# disable_streaming
+		# enable_hard_fails
 	}
 
 	order crowdsec first
 	order filter after encode
 }
 
-## Generic themepark snippets
+## Utilities
+
+(common_pre) {
+	crowdsec
+}
+
+(allow_embedding) {
+	header_down -x-webkit-csp
+	header_down -content-security-policy
+	header_down -X-Frame-Options
+}
+
+## Themepark snippets
+
 # Args: app, theme
 (themepark_filter_theme) {
 	filter {
@@ -37,20 +50,22 @@
 		replacement "<link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/base/{args.0}/{args.1}.css'></head>"
 	}
 }
+
 # Args: app
 (themepark_filter_addon_darker) {
 	filter {
 		content_type text/html.*
 		search_pattern </head>
-		replacement "<link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/base/{args.0}/{args.0}-base.css'><link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/ad>
+		replacement "<link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/base/{args.0}/{args.0}-base.css'><link rel='stylesheet' type='text/css' href='https://theme-park.dev/css/addons/{args.0}/{args.0}-darker/{args.0}-darker.css'></head>"
 	}
 }
+
 # Headers so that reverse proxying works
 (themepark_headers) {
-    header_up -Accept-Encoding
+	header_up -Accept-Encoding
 }
 
-## From lemmy docs
+## Lemmy
 (lemmy_settings) {
     encode gzip
     header {
@@ -62,6 +77,14 @@
         Referrer-Policy no-referrer-when-downgrade
         X-Robots-Tag "none"
     }
+}
+
+# Matrix
+lpcha.im {
+	header /.well-known/matrix/* Content-Type application/json
+	header /.well-known/matrix/* Access-Control-Allow-Origin *
+	respond /.well-known/matrix/server `{"m.server": "matrix.lpcha.im:443"}`
+	respond /.well-known/matrix/client `{"m.homeserver": {"base_url": "https://matrix.lpcha.im"}}`
 }
 
 *.{{ domain }} {
@@ -84,7 +107,7 @@
 	}
 
 	host bazarr.{{ domain }} {
-		crowdsec
+		import common_pre
 		reverse_proxy 10.10.10.0:6767 {
 			import themepark_headers
 		}
@@ -92,6 +115,7 @@
 
 	@code host code.{{ domain }}
 	handle @code {
+		import common_pre
 		reverse_proxy  10.10.10.0:8443 {
 			import themepark_headers
 		}
@@ -99,11 +123,15 @@
 
 	@homeassistant host hass.{{ domain }}
 	handle @homeassistant {
-		reverse_proxy 10.0.0.2:8123
+		import common_pre
+		reverse_proxy 10.0.0.2:8123 {
+			import allow_embedding
+		}
 	}
 
 	@jellyfin host jellyfin.{{ domain }}
 	handle @jellyfin {
+		import common_pre
 		reverse_proxy 10.10.8.10:8096 {
 			import themepark_headers
 		}
@@ -111,33 +139,50 @@
 
 	@jellyseerr host jellyseerr.{{ domain }}
 	handle @jellyseerr {
+		import common_pre
 		reverse_proxy 10.10.10.0:5055 {
 			import themepark_headers
 		}
 	}
 
 	# @lemmy host lemmy.{{ domain }}
-	# handle @lemmy {
-	#     import lemmy_settings
-	#     reverse_proxy 10.10.6.10:80
-	# }
+    # 	handle @lemmy {
+	# 		import common_pre
+	# 		import lemmy_settings 
+	# 		reverse_proxy 10.10.6.10:80
+    # }
+
+	@matrix host matrix.{{ domain }}
+	handle @matrix {
+		reverse_proxy /_matrix/* 10.10.10.0:8008
+	}
 
 	@nextcloud host nextcloud.{{ domain }}
 	handle @nextcloud {
-		reverse_proxy 10.10.4.50:11000 {
-			import themepark_headers
-		}
+		import common_pre
+		reverse_proxy 10.10.4.50:11000
 		redir /.well-known/carddav /remote.php/dav 301
 		redir /.well-known/caldav /remote.php/dav 301
 	}
 
+	@nextcloudTurn {
+		host http://nextcloud-turn.{{ domain }}
+		host https://nextcloud-turn.{{ domain }}
+		host http://nextcloud.{{ domain }}:3478
+	}
+	handle @nextcloudTurn {
+		reverse_proxy 10.10.4.50:3478
+	}
+
 	@prowlarr host prowlarr.{{ domain }}
 	handle @prowlarr {
+		import common_pre
 		reverse_proxy 10.10.10.0:9696
 	}
 
 	@proxmox host proxmox.{{ domain }}
 	handle @proxmox {
+		import common_pre
 		reverse_proxy 10.10.0.1:8006 {
 			transport http {
 				tls_insecure_skip_verify
@@ -147,6 +192,7 @@
 
 	@qbittorrent host qbittorrent.{{ domain }}
 	handle @qbittorrent {
+		import common_pre
 		reverse_proxy 10.10.10.0:8081 {
 			import themepark_headers
 			header_down -x-webkit-csp
@@ -158,14 +204,16 @@
 
 	@radarr host radarr.{{ domain }}
 	handle @radarr {
+		import common_pre
 		reverse_proxy 10.10.10.0:7878 {
-			import themepark_headers
+			# import themepark_headers
 		}
-		import themepark_filter_addon_darker "radarr"
+		# import themepark_filter_addon_darker "radarr"
 	}
 
 	@sonarr host sonarr.{{ domain }}
 	handle @sonarr {
+		import common_pre
 		reverse_proxy 10.10.10.0:8989 {
 			import themepark_headers
 		}
@@ -174,6 +222,15 @@
 
 	# Fallback
 	handle {
-		abort
+		error "Not found" 404
+		# abort
+	}
+
+	handle_errors {
+		rewrite * /{err.status_code}
+		reverse_proxy https://http.cat {
+			header_up Host {upstream_hostport}
+			replace_status {err.status_code}
+		}
 	}
 }
