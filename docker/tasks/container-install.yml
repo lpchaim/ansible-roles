@@ -32,7 +32,7 @@
 
     - name: "Ensure {{ container.name_friendly }} container is setup"
       community.docker.docker_container:
-        state: present
+        state: "{{ container.state | default('present') }}"
         restart_policy: unless-stopped
         recreate: false
         detach: false
@@ -47,16 +47,3 @@
         labels: "{{ container.labels | default(omit) }}"
         devices: "{{ container.devices | default(omit) }}"
       register: container
-
-    # - name: Check if {{ container.name_friendly }} is running
-    #   ansible.builtin.command:
-    #     cmd: |
-    #       docker container inspect -f '{% raw %}{{ .State.Status }}{% endraw %}' {{ container.name }}
-    #   register: running
-
-    - name: "Ensure {{ container.name_friendly }} is running"
-      # when: container.changed # and running.stdout != 'running'
-      ansible.builtin.command:
-        cmd: "docker restart {{ container.name }}"
-      changed_when: false
-      become: true
