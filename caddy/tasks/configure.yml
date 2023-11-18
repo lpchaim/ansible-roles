@@ -23,7 +23,7 @@
     owner: root
     group: root
     mode: "{{ perms_file_default }}"
-    validate: caddy fmt --overwrite
+    validate: caddy fmt --overwrite '%s'
   notify: caddy.restart
 
 - name: Enable caddy service
