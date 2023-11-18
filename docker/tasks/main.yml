@@ -7,10 +7,11 @@
       | grep ^ID=
       | cut --delimiter="=" --fields=2
   register: os
+  changed_when: false
 
 - name: Register OS ID
   ansible.builtin.set_fact:
-    os_id: os.stdout
+    os_id: "{{ os.stdout }}"
 
 - name: Ensure containers are present
   ansible.builtin.include_tasks:
