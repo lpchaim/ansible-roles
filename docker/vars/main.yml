@@ -270,6 +270,7 @@ containers:
   - name: yacht
     name_friendly: Yacht
     image: selfhostedpro/yacht
+    state: stopped
     ports:
       - 8000:8000
     env:
@@ -285,6 +286,7 @@ containers:
   - name: adguardhome-sync
     name_friendly: AdGuardHome Sync
     image: lscr.io/linuxserver/adguardhome-sync:latest
+    state: absent
     ports:
       - 8082:8082
     env:
