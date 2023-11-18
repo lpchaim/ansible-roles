@@ -13,7 +13,7 @@
         cmd: >-
           cat /etc/passwd
           | grep {{ ansible_env.USER }}
-          | awk --field-separator=':' '{print $NF}'
+          | rev | cut --delimiter=":" --fields=1 | rev
       register: shell
       changed_when: false
     - name: Get logged in user's group name
