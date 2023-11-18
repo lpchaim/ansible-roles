@@ -3,12 +3,11 @@ path_bin_file: "{{ path_bin }}/caddy"
 path_config: /etc/caddy
 path_config_file: "{{ path_config }}/Caddyfile"
 path_config_services: "{{ path_config }}/services"
-url_binary: |-
-  https://caddyserver.com/api/download
-  ?os=linux&arch=amd64
-  &p=github.com/mholt/caddy-dynamicdns
-  &p=github.com/mietzen/caddy-dynamicdns-cmd-source
-  &p=github.com/caddy-dns/cloudflare
-  &p=github.com/WeidiDeng/caddy-cloudflare-ip
-  &p=github.com/sjtug/caddy2-filter
-  &p=github.com/hslatman/caddy-crowdsec-bouncer
+url_binary: "https://caddyserver.com/api/download\
+  ?os=linux&arch=amd64\
+  &p=github.com/mholt/caddy-dynamicdns\
+  &p=github.com/mietzen/caddy-dynamicdns-cmd-source\
+  &p=github.com/caddy-dns/cloudflare\
+  &p=github.com/WeidiDeng/caddy-cloudflare-ip\
+  &p=github.com/sjtug/caddy2-filter\
+  &p=github.com/hslatman/caddy-crowdsec-bouncer"
