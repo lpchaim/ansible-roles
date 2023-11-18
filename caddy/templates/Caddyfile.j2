@@ -99,14 +99,22 @@ lpcha.im {
 		-Server
         Strict-Transport-Security "max-age=31536000; include-subdomains;"
         X-XSS-Protection "1; mode=block"
-        X-Frame-Options "DENY"
+        X-Frame-Options "SAMEORIGIN"
         X-Content-Type-Options nosniff
         Referrer-Policy no-referrer-when-downgrade
-        X-Robots-Tag "none"
-		# Strict-Transport-Security "max-age=31536000;"
+        X-Robots-Tag "noindex, nofollow"
 	}
 
-	host bazarr.{{ domain }} {
+	@actual host actual.{{ domain }}
+	handle @actual {
+		import common_pre
+		reverse_proxy 10.10.10.0:5006 {
+			import themepark_headers
+		}
+	}
+
+	@bazarr host bazarr.{{ domain }}
+	handle @bazarr {
 		import common_pre
 		reverse_proxy 10.10.10.0:6767 {
 			import themepark_headers
@@ -116,7 +124,7 @@ lpcha.im {
 	@code host code.{{ domain }}
 	handle @code {
 		import common_pre
-		reverse_proxy  10.10.10.0:8443 {
+		reverse_proxy 10.10.10.0:8443 {
 			import themepark_headers
 		}
 	}
