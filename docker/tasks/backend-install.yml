@@ -57,3 +57,13 @@
     dest: /etc/docker/daemon.json
     mode: "{{ perms_file_default }}"
   become: true
+
+- name: Schedule dangling image prune
+  ansible.builtin.cron:
+    name: "prune unused images"
+    job: >-
+      docker image prune --force --all
+    user: root
+    weekday: "0"
+    minute: "0"
+    hour: "2"
