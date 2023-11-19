@@ -10,23 +10,9 @@ http:
       service: api@internal
       middlewares:
         - auth@file
+        - default@file
       tls:
         certResolver: letsEncrypt
-    nextcloud:
-      rule: Host(`nextcloud.{{ domain }}`)
-      entrypoints:
-        - websecure
-      service: nextcloud
-      middlewares:
-        - nextcloudChain
-      tls:
-        certResolver: letsEncrypt
-
-  services:
-    nextcloud:
-      loadBalancer:
-        servers:
-          - url: http://10.10.6.0:11000
 
   middlewares:
     # A basic authentification middleware, to protect the Traefik dashboard to anyone except myself
@@ -41,7 +27,6 @@ http:
     default:
      chain:
        middlewares:
-          # - traefik-real-ip
           - cloudflarewarp
           - crowdsec
           - default-security-headers
@@ -54,12 +39,16 @@ http:
         browserXssFilter: true                            # X-XSS-Protection=1; mode=block
         contentTypeNosniff: true                          # X-Content-Type-Options=nosniff
         forceSTSHeader: true                              # Add the Strict-Transport-Security header even when the connection is HTTP
-        frameDeny: true                                   # X-Frame-Options=deny
-        referrerPolicy: "strict-origin-when-cross-origin"
+        frameDeny: false                                  # X-Frame-Options=deny
+        customFrameOptionsValue: SAMEORIGIN
+        referrerPolicy: "no-referrer-when-downgrade"
         sslRedirect: true                                 # Allow only https requests
         stsIncludeSubdomains: true                        # Add includeSubdomains to the Strict-Transport-Security header
         stsPreload: true                                  # Add preload flag appended to the Strict-Transport-Security header
-        stsSeconds: 63072000                              # Set the max-age of the Strict-Transport-Security header (63072000 = 2 years)
+        stsSeconds: 31536000                              # Set the max-age of the Strict-Transport-Security header (63072000 = 2 years)
+        customResponseHeaders:
+          X-Robots-Tags: "noindex, nofollow, noarchive"
+          Server: ""
 
     # Enables the GZIP compression (https://docs.traefik.io/middlewares/compress/)
     #   if the response body is larger than 1400 bytes
@@ -81,7 +70,7 @@ http:
           crowdsecLapiHost: crowdsec:8080
           crowdsecLapiScheme: http
           crowdsecLapiTLSInsecureVerify: false
-          forwardedHeadersTrustedIPs: {{ cloudflare_ips_v4 + cloudflare_ips_v6 }}
+          forwardedHeadersTrustedIPs: {{ cloudflare_ips_v4 + cloudflare_ips_v6 + local_ips }}
           clientTrustedIPs: 
             - {{ subnet_private_v4 }}
           forwardedHeadersCustomName: X-Forwarded-For
@@ -90,36 +79,26 @@ http:
           # redisCachePassword: password
           # redisCacheDatabase: "5"
 
-    traefik-real-ip:
-      plugin:
-        traefik-real-ip:
-          excludednets:
-            - "1.1.1.1/24"
-
     cloudflarewarp:
       plugin:
         cloudflarewarp:
           disableDefault: false
-          trustip: {{ cloudflare_ips_v4 + cloudflare_ips_v6 }}
+          trustip: {{ cloudflare_ips_v4 + cloudflare_ips_v6 + local_ips }}
+
     nextcloudSecureHeaders:
       headers:
         hostsProxyHeaders:
           - X-Forwarded-Host
         referrerPolicy: same-origin
+
     httpsRedirect:
         redirectScheme:
           scheme: https 
-    nextcloudChain:
-      chain:
-          middlewares:
-            - cloudflarewarp
-            - crowdsec
-            - httpsRedirect
-            - nextcloudSecureHeaders
-            - gzip
+
   serversTransports:
     ignoreCert:
       insecureSkipVerify: true
+
 # See https://doc.traefik.io/traefik/https/tls/
 tls:
   options:

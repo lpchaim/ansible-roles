@@ -47,52 +47,65 @@ containers:
     networks:
       - name: internal
   # Security
-  # - name: crowdsec
-  #   name_friendly: Crowdsec
-  #   image: crowdsecurity/crowdsec
-  #   env:
-  #     <<: *common_env
-  #   volumes:
-  #     - "{{ path_app_config }}/crowdsec:/etc/crowdsec"
-  #     - "{{ path_app_logs }}/crowdsec:/var/log/nginx"
-  #     - "{{ path_app_data }}/crowdsec:/var/lib/crowdsec/data"
-  #   networks:
-  #     - name: external
-  #     - name: internal
+  - name: crowdsec
+    name_friendly: Crowdsec
+    image: crowdsecurity/crowdsec
+    env:
+      <<: *common_env
+    volumes:
+      - "{{ path_app_config }}/crowdsec:/etc/crowdsec"
+      - "{{ path_app_logs }}/crowdsec:/var/log/nginx"
+      - "{{ path_app_data }}/crowdsec:/var/lib/crowdsec/data"
+    networks:
+      - name: external
+      - name: internal
   # Networking
-  # - name: cloudflare-ddns
-  #   name_friendly: Cloudflare DDNS
-  #   image: oznu/cloudflare-ddns
+  - name: cloudflare-ddns
+    name_friendly: Cloudflare DDNS
+    image: oznu/cloudflare-ddns
+    env:
+      <<: *common_env
+      API_KEY: "{{ secret_cloudflare_api_token }}"
+      ZONE: "{{ domain }}"
+      INTERFACE: eth0
+      PROXIED: "true"
+      RRTYPE: AAAA
+    network_mode: host
+  - name: traefik
+    name_friendly: Traefik
+    image: traefik:v2.9
+    ports:
+      - "{{ port_http_internal }}:80"
+      - "{{ port_https_internal }}:443"
+      - "8080:8080"
+    env:
+      <<: *common_env
+      CF_DNS_API_TOKEN: "{{ secret_cloudflare_api_token }}"
+    volumes:
+      - "{{ path_app_config }}/traefik:/etc/traefik"
+      - "{{ path_app_config }}/traefik/acme:/etc/traefik/acme"
+      - /var/run/docker.sock:/var/run/docker.sock
+    dirs:
+      - "{{ path_app_config }}/traefik"
+      - "{{ path_app_config }}/traefik/acme"
+    templates:
+      - src: ../common/templates/traefik/traefik.yml.j2
+        dest: "{{ path_app_config }}/traefik/traefik.yml"
+      - src: ../common/templates/traefik/dynamic.yml.j2
+        dest: "{{ path_app_config }}/traefik/dynamic.yml"
+    networks:
+      - name: external
+  # - name: themepark
+  #   name_friendly: Theme Park
+  #   image: ghcr.io/themepark-dev/theme.park
   #   env:
   #     <<: *common_env
-  #     API_KEY: "{{ secret_cloudflare_api_token }}"
-  #     ZONE: "{{ domain }}"
-  #     INTERFACE: ens18
-  #     PROXIED: "true"
-  #     RRTYPE: AAAA
-  #   network_mode: host
-  # - name: traefik
-  #   name_friendly: Traefik
-  #   image: traefik:v2.9
-  #   ports:
-  #     - "{{ port_http_internal }}:80"
-  #     - "{{ port_https_internal }}:443"
-  #     - "8080:8080"
-  #   env:
-  #     <<: *common_env
-  #     CF_DNS_API_TOKEN: "{{ secret_cloudflare_api_token }}"
+  #     # TP_URLBASE: themepark #optional
   #   volumes:
-  #     - "{{ path_app_config }}/traefik:/etc/traefik"
-  #     - "{{ path_app_config }}/traefik/acme:/etc/traefik/acme"
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   dirs:
-  #     - "{{ path_app_config }}/traefik"
-  #     - "{{ path_app_config }}/traefik/acme"
-  #   templates:
-  #     - src: ../common/templates/traefik/dynamic.yml.j2
-  #       dest: "{{ path_app_config }}/traefik/dynamic.yml"
-  #   networks:
-  #     - name: external
+  #     - "{{ path_app_config }}/traefik:/config" #optional
+  #   ports:
+  #     - 8084:80
+  #     - 8444:443
   # Downloaders
   - name: qbittorrent
     name_friendly: qBittorrent
@@ -111,6 +124,14 @@ containers:
     <<: *common_args
     networks:
       - name: external
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.qbittorrent.entrypoints: "websecure"
+      traefik.http.routers.qbittorrent.rule: "Host(`qbittorrent.{{ domain }}`)"
+      traefik.http.routers.qbittorrent.tls: "true"
+      traefik.http.routers.qbittorrent.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.qbittorrent.middlewares: "default@file"
+      traefik.http.services.qbittorrent.loadbalancer.server.port: "8081"
   # Arr suite
   - name: sonarr
     name_friendly: Sonarr
@@ -119,6 +140,9 @@ containers:
       - "8989:8989"
     env:
       <<: *common_env
+      DOCKER_MODS: ghcr.io/themepark-dev/theme.park:sonarr
+      TP_THEME: organizr
+      TP_ADDON: sonarr-darker
     volumes:
       - "{{ path_app_config }}/sonarr:/config"
       - "{{ path_storage }}:/storage"
@@ -126,6 +150,13 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.sonarr.entrypoints: "websecure"
+      traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ domain }}`)"
+      traefik.http.routers.sonarr.tls: "true"
+      traefik.http.routers.sonarr.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.sonarr.middlewares: "default@file"
   - name: radarr
     name_friendly: Radarr
     image: lscr.io/linuxserver/radarr
@@ -133,6 +164,9 @@ containers:
       - "7878:7878"
     env:
       <<: *common_env
+      DOCKER_MODS: ghcr.io/themepark-dev/theme.park:radarr
+      TP_THEME: organizr
+      TP_ADDON: radarr-darker
     volumes:
       - "{{ path_app_config }}/radarr:/config"
       - "{{ path_storage }}:/storage"
@@ -140,6 +174,13 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.radarr.entrypoints: "websecure"
+      traefik.http.routers.radarr.rule: "Host(`radarr.{{ domain }}`)"
+      traefik.http.routers.radarr.tls: "true"
+      traefik.http.routers.radarr.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.radarr.middlewares: "default@file"
   - name: bazarr
     name_friendly: Bazarr
     image: lscr.io/linuxserver/bazarr
@@ -154,6 +195,14 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.bazarr.entrypoints: "websecure"
+      traefik.http.routers.bazarr.rule: "Host(`bazarr.{{ domain }}`)"
+      traefik.http.routers.bazarr.tls: "true"
+      traefik.http.routers.bazarr.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.bazarr.middlewares: "default@file"
+      traefik.http.services.bazarr.loadbalancer.server.port: "8081"
   - name: prowlarr
     name_friendly: Prowlarr
     image: lscr.io/linuxserver/prowlarr
@@ -167,6 +216,13 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.prowlarr.entrypoints: "websecure"
+      traefik.http.routers.prowlarr.rule: "Host(`prowlarr.{{ domain }}`)"
+      traefik.http.routers.prowlarr.tls: "true"
+      traefik.http.routers.prowlarr.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.prowlarr.middlewares: "default@file"
   # - name: jackett
   #   name_friendly: Jackett
   #   image: lscr.io/linuxserver/jackett
@@ -214,6 +270,13 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.jellyseerr.entrypoints: "websecure"
+      traefik.http.routers.jellyseerr.rule: "Host(`jellyseerr.{{ domain }}`)"
+      traefik.http.routers.jellyseerr.tls: "true"
+      traefik.http.routers.jellyseerr.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.jellyseerr.middlewares: "default@file"
   # Misc
   # - name: heimdall
   #   name_friendly: Heimdall
@@ -245,6 +308,13 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.actual.entrypoints: "websecure"
+      traefik.http.routers.actual.rule: "Host(`actual.{{ domain }}`)"
+      traefik.http.routers.actual.tls: "true"
+      traefik.http.routers.actual.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.actual.middlewares: "default@file"
   - name: vscode
     name_friendly: Visual Studio Code
     image: lscr.io/linuxserver/code-server
@@ -260,6 +330,13 @@ containers:
     networks:
       - name: external
       - name: internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.code.entrypoints: "websecure"
+      traefik.http.routers.code.rule: "Host(`code.{{ domain }}`)"
+      traefik.http.routers.code.tls: "true"
+      traefik.http.routers.code.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.code.middlewares: "default@file"
   - name: watchtower
     name_friendly: Watchtower
     image: containrrr/watchtower

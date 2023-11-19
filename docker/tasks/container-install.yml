@@ -47,3 +47,10 @@
         labels: "{{ container.labels | default(omit) }}"
         devices: "{{ container.devices | default(omit) }}"
       register: container
+
+    - name: "Restart {{ container.name_friendly }}"
+      ansible.builtin.command:
+        cmd: "docker restart {{ container.name }}"
+      changed_when: false
+      failed_when: false
+      become: true

@@ -2,7 +2,7 @@
 	dynamic_dns {
 		provider cloudflare {{ secret_cloudflare_api_token }}
 		domains {
-			{{ domain }} @
+			{{ domain }} jellyfin nextcloud
 		}
 		check_interval 5m
 		versions ipv6
@@ -18,7 +18,7 @@
 
 	crowdsec {
 		api_url http://10.10.2.30:8080
-		api_key {{ secret_crowdsec_bouncer_api_key }}
+		api_key {{ secret_crowdsec_bouncer_caddy_api_key }}
 		# ticker_interval 15s
 		# disable_streaming
 		# enable_hard_fails
@@ -102,31 +102,7 @@ lpcha.im {
         X-Frame-Options "SAMEORIGIN"
         X-Content-Type-Options nosniff
         Referrer-Policy no-referrer-when-downgrade
-        X-Robots-Tag "noindex, nofollow"
-	}
-
-	@actual host actual.{{ domain }}
-	handle @actual {
-		import common_pre
-		reverse_proxy 10.10.10.0:5006 {
-			import themepark_headers
-		}
-	}
-
-	@bazarr host bazarr.{{ domain }}
-	handle @bazarr {
-		import common_pre
-		reverse_proxy 10.10.10.0:6767 {
-			import themepark_headers
-		}
-	}
-
-	@code host code.{{ domain }}
-	handle @code {
-		import common_pre
-		reverse_proxy 10.10.10.0:8443 {
-			import themepark_headers
-		}
+        X-Robots-Tag "noindex, nofollow, noarchive"
 	}
 
 	@homeassistant host hass.{{ domain }}
@@ -144,21 +120,6 @@ lpcha.im {
 			import themepark_headers
 		}
 	}
-
-	@jellyseerr host jellyseerr.{{ domain }}
-	handle @jellyseerr {
-		import common_pre
-		reverse_proxy 10.10.10.0:5055 {
-			import themepark_headers
-		}
-	}
-
-	# @lemmy host lemmy.{{ domain }}
-    # 	handle @lemmy {
-	# 		import common_pre
-	# 		import lemmy_settings 
-	# 		reverse_proxy 10.10.6.10:80
-    # }
 
 	@matrix host matrix.{{ domain }}
 	handle @matrix {
@@ -180,52 +141,6 @@ lpcha.im {
 	}
 	handle @nextcloudTurn {
 		reverse_proxy 10.10.4.50:3478
-	}
-
-	@prowlarr host prowlarr.{{ domain }}
-	handle @prowlarr {
-		import common_pre
-		reverse_proxy 10.10.10.0:9696
-	}
-
-	@proxmox host proxmox.{{ domain }}
-	handle @proxmox {
-		import common_pre
-		reverse_proxy 10.10.0.1:8006 {
-			transport http {
-				tls_insecure_skip_verify
-			}
-		}
-	}
-
-	@qbittorrent host qbittorrent.{{ domain }}
-	handle @qbittorrent {
-		import common_pre
-		reverse_proxy 10.10.10.0:8081 {
-			import themepark_headers
-			header_down -x-webkit-csp
-			header_down -content-security-policy
-			header_down -X-Frame-Options
-		}
-		import themepark_filter_theme "qbittorrent" "organizr"
-	}
-
-	@radarr host radarr.{{ domain }}
-	handle @radarr {
-		import common_pre
-		reverse_proxy 10.10.10.0:7878 {
-			# import themepark_headers
-		}
-		# import themepark_filter_addon_darker "radarr"
-	}
-
-	@sonarr host sonarr.{{ domain }}
-	handle @sonarr {
-		import common_pre
-		reverse_proxy 10.10.10.0:8989 {
-			import themepark_headers
-		}
-		import themepark_filter_addon_darker "sonarr"
 	}
 
 	# Fallback

@@ -25,8 +25,8 @@ entryPoints:
           scheme: "https"                     # The redirection target scheme
   websecure:
     address: ":443"                           # Create the HTTPS entrypoint on port 443
-    # forwardedHeaders:
-    #   trustedIps:        
+    forwardedHeaders:
+      trustedIps: {{ cloudflare_ips_v4 + cloudflare_ips_v6 + local_ips }}      
 
 global:
   checknewversion: true                       # Periodically check if a new version has been released.
@@ -48,9 +48,6 @@ experimental:
     bouncer:
       moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
       version: v1.1.12
-    traefik-real-ip:
-      modulename: github.com/soulbalz/traefik-real-ip
-      version: v1.0.3
     cloudflarewarp:
       modulename: github.com/BetterCorp/cloudflarewarp
       version: v1.3.0
