@@ -95,17 +95,36 @@ containers:
         dest: "{{ path_app_config }}/traefik/dynamic.yml"
     networks:
       - name: external
-  # - name: themepark
-  #   name_friendly: Theme Park
-  #   image: ghcr.io/themepark-dev/theme.park
-  #   env:
-  #     <<: *common_env
-  #     # TP_URLBASE: themepark #optional
-  #   volumes:
-  #     - "{{ path_app_config }}/traefik:/config" #optional
-  #   ports:
-  #     - 8084:80
-  #     - 8444:443
+  - name: themepark
+    name_friendly: Theme Park
+    image: ghcr.io/themepark-dev/theme.park
+    env:
+      <<: *common_env
+      # TP_URLBASE: themepark #optional
+    volumes:
+      - "{{ path_app_config }}/themepark:/config"
+    dirs:
+      - "{{ path_app_config }}/themepark/www/css/theme-options"
+    templates:
+      - src: ../common/templates/themepark/cattpuccin/frappe.css
+        dest: "{{ path_app_config }}/themepark/www/css/theme-options/frappe.css"
+      - src: ../common/templates/themepark/cattpuccin/latte.css
+        dest: "{{ path_app_config }}/themepark/www/css/theme-options/latte.css"
+      - src: ../common/templates/themepark/cattpuccin/macchiato.css
+        dest: "{{ path_app_config }}/themepark/www/css/theme-options/macchiato.css"
+      - src: ../common/templates/themepark/cattpuccin/mocha.css
+        dest: "{{ path_app_config }}/themepark/www/css/theme-options/mocha.css"
+    ports:
+      - 8084:80
+      - 8444:443
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.themepark.entrypoints: "websecure"
+      traefik.http.routers.themepark.rule: "Host(`themepark.{{ domain }}`)"
+      traefik.http.routers.themepark.tls: "true"
+      traefik.http.routers.themepark.tls.certresolver: "letsEncrypt"
+      traefik.http.routers.themepark.middlewares: "default@file"
+      traefik.http.services.themepark.loadbalancer.server.port: "80"
   # Downloaders
   - name: qbittorrent
     name_friendly: qBittorrent
@@ -117,7 +136,9 @@ containers:
     env:
       <<: *common_env
       WEBUI_PORT: "8081"
-      DOCKER_MODS: ghcr.io/gabe565/linuxserver-mod-vuetorrent
+      DOCKER_MODS: ghcr.io/themepark-dev/theme.park:qbittorrent
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: frappe
     volumes:
       - "{{ path_app_config }}/qbittorrent:/config"
       - "{{ path_storage }}/Downloads/Torrents:/downloads"
@@ -141,8 +162,8 @@ containers:
     env:
       <<: *common_env
       DOCKER_MODS: ghcr.io/themepark-dev/theme.park:sonarr
-      TP_THEME: organizr
-      TP_ADDON: sonarr-darker
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: frappe
     volumes:
       - "{{ path_app_config }}/sonarr:/config"
       - "{{ path_storage }}:/storage"
@@ -165,8 +186,8 @@ containers:
     env:
       <<: *common_env
       DOCKER_MODS: ghcr.io/themepark-dev/theme.park:radarr
-      TP_THEME: organizr
-      TP_ADDON: radarr-darker
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: frappe
     volumes:
       - "{{ path_app_config }}/radarr:/config"
       - "{{ path_storage }}:/storage"
@@ -188,6 +209,9 @@ containers:
       - "6767:6767"
     env:
       <<: *common_env
+      DOCKER_MODS: ghcr.io/themepark-dev/theme.park:bazarr
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: frappe
     volumes:
       - "{{ path_app_config }}/bazarr:/config"
       - "{{ path_storage }}:/storage"
@@ -210,6 +234,9 @@ containers:
       - "9696:9696"
     env:
       <<: *common_env
+      DOCKER_MODS: ghcr.io/themepark-dev/theme.park:prowlarr
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: frappe
     volumes:
       - "{{ path_app_config }}/prowlarr:/config"
     <<: *common_args
