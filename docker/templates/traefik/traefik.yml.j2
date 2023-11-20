@@ -25,6 +25,9 @@ entryPoints:
           scheme: "https"                     # The redirection target scheme
   websecure:
     address: ":443"                           # Create the HTTPS entrypoint on port 443
+    http:
+      tls:
+        certResolver: letsEncrypt
     forwardedHeaders:
       trustedIps: {{ cloudflare_ips_v4 + cloudflare_ips_v6 + local_ips }}      
 

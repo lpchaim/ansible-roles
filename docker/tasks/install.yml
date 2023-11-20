@@ -9,31 +9,16 @@
         - install
         - initial
 
-- name: Create external network
-  become: true
-  community.docker.docker_network:
-    driver: bridge
-    name: external
-    ipam_config:
-      - subnet: 10.10.250.0/24
-
-- name: Create internal network
-  become: true
-  community.docker.docker_network:
-    driver: bridge
-    name: internal
-    internal: true
-    ipam_config:
-      - subnet: 172.16.80.0/24
-
-- name: Install containers
-  tags:
-    - install
-    - container
-  loop: "{{ containers }}"
-  vars:
-    container: "{{ item }}"
+- name: Template application files
   ansible.builtin.include_tasks:
-    file: "container-install.yml"
-    apply:
-      become: true
+    file: template-app-files.yml
+
+- name: Template compose files
+  with_fileglob:
+    - "templates/compose/*.j2"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "~/{{ file | basename | replace('.j2', '') }}"
+  notify: compose.update

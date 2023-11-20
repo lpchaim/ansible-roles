@@ -1,0 +1,62 @@
+---
+
+- name: Ensure app file directories exist
+  loop:
+    - "{{ path_app_config }}/adguardhome-sync"
+    - "{{ path_app_config }}/crowdsec/acquis.d"
+    - "{{ path_app_config }}/themepark/www/css/theme-options"
+    - "{{ path_app_config }}/traefik"
+  loop_control:
+    loop_var: file
+  ansible.builtin.file:
+    path: "{{ file }}"
+
+- name: Template adguardhome-sync files
+  with_fileglob:
+    - "templates/adguardhome-sync/*"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ path_app_config }}/adguardhome-sync/{{ file | basename }}"
+  notify: compose.update
+
+- name: Template crowdsec
+  with_fileglob:
+    - "templates/crowdsec/*"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ path_app_config }}/crowdsec/{{ file | basename | regex_replace('.j2$', '') }}"
+  notify: compose.update 
+
+- name: Template crowdsec acquis.d
+  with_fileglob:
+    - "templates/crowdsec/acquis.d/*"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ path_app_config }}/crowdsec/acquis.d/{{ file | basename | regex_replace('.j2$', '') }}"
+  notify: compose.update 
+
+- name: Template themepark cattpuccin files
+  with_fileglob:
+    - "templates/themepark/cattpuccin/*.css"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ path_app_config }}/themepark/www/css/theme-options/{{ file | basename }}"
+  notify: compose.update
+
+- name: Template traefik files
+  with_fileglob:
+    - "templates/traefik/*.j2"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ path_app_config }}/traefik/{{ file | basename | replace('.j2', '') }}"
+  notify: compose.update

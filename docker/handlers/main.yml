@@ -1,0 +1,6 @@
+---
+
+- name: Docker compose update
+  listen: compose.update
+  ansible.builtin.command:
+    cmd: docker compose up --detach --remove-orphans

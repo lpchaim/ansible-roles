@@ -1,0 +1,11 @@
+services:
+  default:
+    environment:
+      - TZ={{ timezone }}
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - /dev/rtc:/dev/rtc:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: "unless-stopped"
