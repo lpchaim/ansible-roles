@@ -1,0 +1,52 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+
+- Main:
+    - Jellyfin:
+        href: https://jellyfin.{{ domain }}
+        siteMonitor: https://jellyfin.{{ domain }}
+        icon: jellyfin.svg
+        description: Media server
+        weight: -990000
+        widget:
+            type: jellyfin
+            url: https://jellyfin.{{ domain }}
+            key: "{{ secret_jellyfin_api_key }}"
+            enableBlocks: true
+            enableNowPlaying: true
+    - Home Assistant:
+        href: https://hass.{{ domain }}
+        siteMonitor: https://hass.{{ domain }}
+        icon: home-assistant.svg
+        description: Home automation
+        weight: -980000
+        widget:
+            type: homeassistant
+            url: https://hass.{{ domain }}
+            key: "{{ secret_homeassistant_token }}"
+    - Nextcloud:
+        href: https://nextcloud.{{ domain }}
+        siteMonitor: https://nextcloud.{{ domain }}
+        icon: nextcloud.svg
+        description: Personal cloud
+        weight: -970000
+        widget:
+            type: nextcloud
+            url: https://nextcloud.{{ domain }}
+            key: "{{ secret_nextcloud_token }}"
+            fields:
+                - activeusers
+                - numfiles
+                - numshares
+    - Proxmox:
+        href: https://proxmox.{{ domain }}
+        siteMonitor: https://proxmox.{{ domain }}
+        icon: proxmox.svg
+        description: Virtualization platform
+        weight: -960000
+        widget:
+            type: healthchecks
+            url: https://healthchecks.io
+            key: "{{ secret_healthcheck_api_key_ro }}"
+            uuid: "{{ secret_healthcheck_io_uuid_snapraid_sync }}"

@@ -4,6 +4,7 @@
   loop:
     - "{{ path_app_config }}/adguardhome-sync"
     - "{{ path_app_config }}/crowdsec/acquis.d"
+    - "{{ path_app_config }}/homepage"
     - "{{ path_app_config }}/themepark/www/css/theme-options"
     - "{{ path_app_config }}/traefik"
   loop_control:
@@ -40,6 +41,16 @@
     src: "{{ file }}"
     dest: "{{ path_app_config }}/crowdsec/acquis.d/{{ file | basename | regex_replace('.j2$', '') }}"
   notify: compose.update 
+
+- name: Template homepage files
+  with_fileglob:
+    - "templates/homepage/*"
+  loop_control:
+    loop_var: file
+  ansible.builtin.template:
+    src: "{{ file }}"
+    dest: "{{ path_app_config }}/homepage/{{ file | basename }}"
+  notify: compose.update
 
 - name: Template themepark cattpuccin files
   with_fileglob:

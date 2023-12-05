@@ -47,9 +47,12 @@ services:
       traefik.http.services.themepark.loadbalancer.server.port: "80"
   
   traefik:
+    extends:
+      file: defaults.yaml
+      service: default
     image: traefik:v2.9
     environment:
-      - CF_DNS_API_TOKEN="{{ secret_cloudflare_api_token }}"
+      CF_DNS_API_TOKEN: "{{ secret_cloudflare_api_token }}"
     networks:
       - default
       - external
@@ -70,9 +73,9 @@ services:
       service: default
     image: lscr.io/linuxserver/bazarr:latest
     environment:
-      - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:bazarr
-      - TP_DOMAIN=themepark.{{ domain }}
-      - TP_THEME=frappe
+      DOCKER_MODS: "ghcr.io/themepark-dev/theme.park:bazarr"
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: "frappe"
     networks:
       - default
       - external
@@ -86,18 +89,24 @@ services:
       homepage.name: Bazarr
       homepage.icon: bazarr.png
       homepage.href: https://bazarr.{{ domain }}
-      homepage.description: Manage subtitles
+      homepage.description: Subtitle manager
+      homepage.widget.type: bazarr
+      homepage.widget.url: https://bazarr.{{ domain }}
+      homepage.widget.key: "{{ secret_bazarr_api_key }}"
       traefik.enable: "true"
       traefik.http.routers.bazarr.entrypoints: "websecure"
       traefik.http.routers.bazarr.rule: "Host(`bazarr.{{ domain }}`)"
       traefik.http.routers.bazarr.middlewares: "default@file"
   
   radarr:
+    extends:
+      file: defaults.yaml
+      service: default
     image: lscr.io/linuxserver/radarr:latest
     environment:
-      - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:radarr
-      - TP_DOMAIN=themepark.{{ domain }}
-      - TP_THEME=frappe
+      DOCKER_MODS: "ghcr.io/themepark-dev/theme.park:radarr"
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: "frappe"
     networks:
       - default
       - external
@@ -111,7 +120,11 @@ services:
       homepage.name: Radarr
       homepage.icon: radarr.png
       homepage.href: https://radarr.{{ domain }}
-      homepage.description: Download movies
+      homepage.description: Movie manager
+      homepage.weight: -60000
+      homepage.widget.type: radarr
+      homepage.widget.url: https://radarr.{{ domain }}
+      homepage.widget.key: {{ secret_radarr_api_key }}
       traefik.enable: "true"
       traefik.http.routers.radarr.entrypoints: "websecure"
       traefik.http.routers.radarr.rule: "Host(`radarr.{{ domain }}`)"
@@ -123,9 +136,9 @@ services:
       service: default
     image: lscr.io/linuxserver/sonarr:latest
     environment:
-      - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:sonarr
-      - TP_DOMAIN=themepark.{{ domain }}
-      - TP_THEME=frappe
+      DOCKER_MODS: "ghcr.io/themepark-dev/theme.park:sonarr"
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: "frappe"
     networks:
       - default
       - external
@@ -139,13 +152,20 @@ services:
       homepage.name: Sonarr
       homepage.icon: sonarr.png
       homepage.href: https://sonarr.{{ domain }}
-      homepage.description: Download TV shows and anime
+      homepage.description: Series manager
+      homepage.weight: -70000
+      homepage.widget.type: sonarr
+      homepage.widget.url: https://sonarr.{{ domain }}
+      homepage.widget.key: {{ secret_sonarr_api_key }}
       traefik.enable: "true"
       traefik.http.routers.sonarr.entrypoints: "websecure"
       traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ domain }}`)"
       traefik.http.routers.sonarr.middlewares: "default@file"
   
   jellyseerr:
+    extends:
+      file: defaults.yaml
+      service: default
     image: fallenbagel/jellyseerr:latest
     networks:
       - default
@@ -159,18 +179,25 @@ services:
       homepage.name: Jellyseerr
       homepage.icon: jellyseerr.png
       homepage.href: https://jellyseerr.{{ domain }}
-      homepage.description: Manage media requests
+      homepage.description: Media requester
+      homepage.weight: -80000
+      homepage.widget.type: jellyseerr
+      homepage.widget.url: https://jellyseerr.{{ domain }}
+      homepage.widget.key: {{ secret_jellyseerr_api_key }}
       traefik.enable: "true"
       traefik.http.routers.jellyseerr.entrypoints: "websecure"
       traefik.http.routers.jellyseerr.rule: "Host(`jellyseerr.{{ domain }}`)"
       traefik.http.routers.jellyseerr.middlewares: "default@file"
   
   prowlarr:
+    extends:
+      file: defaults.yaml
+      service: default
     image: lscr.io/linuxserver/prowlarr:latest
     environment:
-      - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:prowlarr
-      - TP_DOMAIN=themepark.{{ domain }}
-      - TP_THEME=frappe
+      DOCKER_MODS: "ghcr.io/themepark-dev/theme.park:prowlarr"
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: "frappe"
     networks:
       - default
       - external
@@ -183,13 +210,16 @@ services:
       homepage.name: Prowlarr
       homepage.icon: prowlarr.png
       homepage.href: https://prowlarr.{{ domain }}
-      homepage.description: Manage *arr indexers
+      homepage.description: Arr index manager
+      homepage.widget.type: prowlarr
+      homepage.widget.url: https://prowlarr.{{ domain }}
+      homepage.widget.key: "{{ secret_prowlarr_api_key }}"
       traefik.enable: "true"
       traefik.http.routers.prowlarr.entrypoints: "websecure"
       traefik.http.routers.prowlarr.rule: "Host(`prowlarr.{{ domain }}`)"
       traefik.http.routers.prowlarr.middlewares: "default@file"
   
-  # Services
+  # Other
 
   actual-server:
     extends:
@@ -224,9 +254,6 @@ services:
       - "{{ path_app_config }}/adguardhome-sync:/config"
 
   homepage:
-    extends:
-      file: defaults.yaml
-      service: default
     image: ghcr.io/gethomepage/homepage:v0.8.0
     networks:
       - default
@@ -236,6 +263,7 @@ services:
     volumes:
       - {{ path_app_config }}/homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
+      - {{ path_storage }}:/storage:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.home.entrypoints: "websecure"
@@ -296,10 +324,10 @@ services:
       service: default
     image: lscr.io/linuxserver/qbittorrent:latest
     environment:
-      - WEBUI_PORT=8081
-      - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:qbittorrent
-      - TP_DOMAIN=themepark.{{ domain }}
-      - TP_THEME=frappe
+      WEBUI_PORT: "8081"
+      DOCKER_MODS: "ghcr.io/themepark-dev/theme.park:qbittorrent"
+      TP_DOMAIN: "themepark.{{ domain }}"
+      TP_THEME: "frappe"
     networks:
       - default
       - external
@@ -311,11 +339,15 @@ services:
       - {{ path_app_config }}/qbittorrent:/config
       - {{ path_storage }}/Downloads/Torrents:/downloads
     labels:
-      homepage.group: Services
+      homepage.group: Other
       homepage.name: qBittorrent
       homepage.icon: qbittorrent.png
       homepage.href: https://qbittorrent.{{ domain }}
-      homepage.description: Download and seed torrents
+      homepage.description: Torrent downloader
+      homepage.widget.type: qbittorrent
+      homepage.widget.url: https://qbittorrent.{{ domain }}
+      homepage.widget.username: "{{ secret_qbittorrent_user }}"
+      homepage.widget.password: "{{ secret_qbittorrent_password }}"
       traefik.enable: "true"
       traefik.http.routers.qbittorrent.entrypoints: "websecure"
       traefik.http.routers.qbittorrent.rule: "Host(`qbittorrent.{{ domain }}`)"
@@ -336,11 +368,11 @@ services:
       - {{ path_app_config }}/syncthing:/config
       - {{ path_app_data }}/syncthing:/data
     labels:
-      homepage.group: Services
+      homepage.group: Storage
       homepage.name: Syncthing
       homepage.icon: syncthing.png
       homepage.href: https://syncthing.{{ domain }}
-      homepage.description: Keep files synced
+      homepage.description: P2P file syncing
       traefik.enable: "true"
       traefik.http.routers.syncthing.entrypoints: "websecure"
       traefik.http.routers.syncthing.rule: "Host(`syncthing.{{ domain }}`)"
@@ -353,18 +385,8 @@ services:
       service: default
     image: lscr.io/linuxserver/code-server:latest
     environment:
-      - PASSWORD={{ secret_vscode_password }}
-      - PROXY_DOMAIN=code.{{ domain }}
-    labels:
-      homepage.group: Services
-      homepage.name: Visual Studio Code
-      homepage.icon: vscode.png
-      homepage.href: https://code.{{ domain }}
-      homepage.description: Cloud IDE in a pinch
-      traefik.enable: "true"
-      traefik.http.routers.code.entrypoints: "websecure"
-      traefik.http.routers.code.rule: "Host(`code.{{ domain }}`)"
-      traefik.http.routers.code.middlewares: "default@file"
+      PASSWORD: "{{ secret_vscode_password }}"
+      PROXY_DOMAIN: "code.{{ domain }}"
     networks:
       - default
       - external
@@ -372,6 +394,16 @@ services:
       - 8443:8443/tcp
     volumes:
       - {{ path_app_config }}/vscode:/config
+    labels:
+      homepage.group: Other
+      homepage.name: Visual Studio Code
+      homepage.icon: vscode.png
+      homepage.href: https://code.{{ domain }}
+      homepage.description: Cloud IDE
+      traefik.enable: "true"
+      traefik.http.routers.code.entrypoints: "websecure"
+      traefik.http.routers.code.rule: "Host(`code.{{ domain }}`)"
+      traefik.http.routers.code.middlewares: "default@file"
 
   # Management
 
@@ -398,8 +430,8 @@ services:
       - default
       - external
     environment:
-      - WATCHTOWER_SCHEDULE=0 2 * * *
-      - WATCHTOWER_CLEANUP=true
+      WATCHTOWER_SCHEDULE: "0 2 * * *"
+      WATCHTOWER_CLEANUP: "true"
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
