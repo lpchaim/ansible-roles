@@ -143,6 +143,16 @@ lpcha.im {
 		reverse_proxy 10.10.4.50:3478
 	}
 
+	@pve01 host pve01.{{ domain }}
+	handle @pve01 {
+		import common_pre
+		reverse_proxy 10.10.0.1:8006 {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+
 	# Fallback
 	handle {
 		error "Not found" 404
