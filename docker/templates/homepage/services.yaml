@@ -13,7 +13,6 @@
             type: jellyfin
             url: https://jellyfin.{{ domain }}
             key: "{{ secret_jellyfin_api_key }}"
-            enableBlocks: true
             enableNowPlaying: true
     - Home Assistant:
         href: https://hass.{{ domain }}
