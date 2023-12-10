@@ -40,10 +40,16 @@
                 - numshares
     - Proxmox:
         href: https://pve01.{{ domain }}
-        siteMonitor: https://pve01.{{ domain }}
+        ping: https://pve01.{{ domain }}
         icon: proxmox.svg
         description: Virtualization platform
         weight: -960000
+        widget:
+            type: proxmox
+            url: https://10.10.0.1:8006
+            username: "{{ secret_proxmox_user_ro }}"
+            password: "{{ secret_proxmox_password_ro }}"
+
 - Health Checks:
     - SnapRAID Sync:
         href: https://healthchecks.io/checks/{{ secret_healthcheck_io_uuid_snapraid_sync }}/details/
