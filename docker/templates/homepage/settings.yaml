@@ -2,12 +2,14 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/settings
 
+language: en
 layout:
   Main:
     style: row
-    columns: 5
+    columns: 4
+    header: false
   Media:
     style: row
-    columns: 5
+    columns: 4
   Storage:
   Other:
