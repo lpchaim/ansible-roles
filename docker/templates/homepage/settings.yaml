@@ -17,5 +17,5 @@ layout:
   Media:
     style: row
     columns: 4
-  Storage:
   Other:
+  Health Checks:
