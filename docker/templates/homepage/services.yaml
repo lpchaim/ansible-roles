@@ -40,8 +40,8 @@
                 - numfiles
                 - numshares
     - Proxmox:
-        href: https://proxmox.{{ domain }}
-        siteMonitor: https://proxmox.{{ domain }}
+        href: https://pve01.{{ domain }}
+        siteMonitor: https://pve01.{{ domain }}
         icon: proxmox.svg
         description: Virtualization platform
         weight: -960000
