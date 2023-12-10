@@ -5,7 +5,7 @@
 - Main:
     - Jellyfin:
         href: https://jellyfin.{{ domain }}
-        siteMonitor: https://jellyfin.{{ domain }}
+        ping: https://jellyfin.{{ domain }}
         icon: jellyfin.svg
         description: Media server
         weight: -990000
@@ -16,7 +16,7 @@
             enableNowPlaying: true
     - Home Assistant:
         href: https://hass.{{ domain }}
-        siteMonitor: https://hass.{{ domain }}
+        ping: https://hass.{{ domain }}
         icon: home-assistant.svg
         description: Home automation
         weight: -980000
@@ -26,7 +26,7 @@
             key: "{{ secret_homeassistant_token }}"
     - Nextcloud:
         href: https://nextcloud.{{ domain }}
-        siteMonitor: https://nextcloud.{{ domain }}
+        ping: https://nextcloud.{{ domain }}
         icon: nextcloud.svg
         description: Personal cloud
         weight: -970000

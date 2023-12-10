@@ -18,4 +18,8 @@ layout:
     style: row
     columns: 4
   Other:
+    style: row
+    columns: 4
   Health Checks:
+    style: row
+    columns: 6
