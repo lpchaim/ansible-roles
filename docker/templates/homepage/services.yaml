@@ -44,8 +44,49 @@
         icon: proxmox.svg
         description: Virtualization platform
         weight: -960000
+- Health Checks:
+    - SnapRAID Sync:
+        href: https://healthchecks.io/checks/{{ secret_healthcheck_io_uuid_snapraid_sync }}/details/
+        icon: healthchecks.svg
+        description: Syncs new data to SnapRAID array
         widget:
             type: healthchecks
             url: https://healthchecks.io
             key: "{{ secret_healthcheck_api_key_ro }}"
             uuid: "{{ secret_healthcheck_io_uuid_snapraid_sync }}"
+    - SnapRAID Scrub:
+        href: https://healthchecks.io/checks/{{ secret_healthcheck_io_uuid_snapraid_scrub }}/details/
+        icon: healthchecks.svg
+        description: Checks SnapRAID array for errors
+        widget:
+            type: healthchecks
+            url: https://healthchecks.io
+            key: "{{ secret_healthcheck_api_key_ro }}"
+            uuid: "{{ secret_healthcheck_io_uuid_snapraid_scrub }}"
+    - Borg Backup Main:
+        href: https://healthchecks.io/checks/{{ secret_healthcheck_io_uuid_borg_main }}/details/
+        icon: healthchecks.svg
+        description: Backs up PVE data
+        widget:
+            type: healthchecks
+            url: https://healthchecks.io
+            key: "{{ secret_healthcheck_api_key_ro }}"
+            uuid: "{{ secret_healthcheck_io_uuid_borg_main }}"
+    - Borg Backup App Data:
+        href: https://healthchecks.io/checks/{{ secret_healthcheck_io_uuid_borg_appdata }}/details/
+        icon: healthchecks.svg
+        description: Backs up application data
+        widget:
+            type: healthchecks
+            url: https://healthchecks.io
+            key: "{{ secret_healthcheck_api_key_ro }}"
+            uuid: "{{ secret_healthcheck_io_uuid_borg_appdata }}"
+    - Borg Backup Personal:
+        href: https://healthchecks.io/checks/{{ secret_healthcheck_io_uuid_borg_personal }}/details/
+        icon: healthchecks.svg
+        description: Backs up personal data
+        widget:
+            type: healthchecks
+            url: https://healthchecks.io
+            key: "{{ secret_healthcheck_api_key_ro }}"
+            uuid: "{{ secret_healthcheck_io_uuid_borg_personal }}"
