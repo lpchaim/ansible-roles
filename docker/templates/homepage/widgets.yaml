@@ -6,6 +6,5 @@
     cpu: true
     memory: true
     disk: /storage
-- search:
-    provider: google
-    target: _blank
+    cputemp: true
+    uptime: true
