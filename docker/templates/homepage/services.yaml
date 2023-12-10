@@ -34,7 +34,7 @@
         widget:
             type: nextcloud
             url: https://nextcloud.{{ domain }}
-            key: "{{ secret_nextcloud_token }}"
+            key: "{{ secret_nextcloud_serverinfo_token }}"
             fields:
                 - activeusers
                 - numfiles
