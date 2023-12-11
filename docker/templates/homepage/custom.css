@@ -1,8 +1,8 @@
-[id*=inlinewidget] > :nth-child(1) {
+[id*=inlinewidget] > .service-card {
 	display: flex;
 }
 
-[id*=inlinewidget] > :nth-child(1) > :nth-child(1) {
+[id*=inlinewidget] > .service-card > .service-title {
 	width: 50%;
 	display: inline-flex;
 }
