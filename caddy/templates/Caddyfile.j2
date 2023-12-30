@@ -2,7 +2,7 @@
 	dynamic_dns {
 		provider cloudflare {{ secret_cloudflare_api_token }}
 		domains {
-			{{ domain }} jellyfin nextcloud
+			{{ domain }} hass jellyfin nextcloud
 		}
 		check_interval 5m
 		versions ipv6
@@ -90,7 +90,7 @@ lpcha.im {
 *.{{ domain }} {
 	tls {
 		dns cloudflare {{ secret_cloudflare_api_token }}
-		# resolvers 8.8.8.8
+		resolvers 1.1.1.1
 	}
 
 	encode zstd gzip
@@ -102,7 +102,7 @@ lpcha.im {
         X-Frame-Options "SAMEORIGIN"
         X-Content-Type-Options nosniff
         Referrer-Policy no-referrer-when-downgrade
-        X-Robots-Tag "noindex, nofollow, noarchive"
+        X-Robots-Tag "noindex, nofollow"
 	}
 
 	@homeassistant host hass.{{ domain }}
