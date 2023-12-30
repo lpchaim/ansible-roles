@@ -16,8 +16,8 @@
 [Unit]
 Description=Caddy
 Documentation=https://caddyserver.com/docs/
-After=network.target network-online.target
 Requires=network-online.target
+After=network-online.target
 
 [Service]
 Type=notify
@@ -32,6 +32,8 @@ PrivateDevices=yes
 PrivateTmp=true
 ProtectSystem=full
 AmbientCapabilities=CAP_NET_BIND_SERVICE
+Restart=always
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
