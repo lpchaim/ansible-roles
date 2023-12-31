@@ -12,6 +12,9 @@
 - name: Template application files
   ansible.builtin.include_tasks:
     file: template-app-files.yml
+    apply:
+      tags:
+        - specific
 
 - name: Template compose files
   with_fileglob:
