@@ -359,6 +359,9 @@ services:
       file: defaults.yaml
       service: default
     image: lscr.io/linuxserver/syncthing:latest
+    networks:
+      - default
+      - external
     ports:
       - 8384:8384
       - 22000:22000/tcp
