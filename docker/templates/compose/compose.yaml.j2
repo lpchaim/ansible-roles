@@ -172,6 +172,31 @@ services:
       traefik.http.routers.lidarr.entrypoints: "websecure"
       traefik.http.routers.lidarr.rule: "Host(`lidarr.{{ domain }}`)"
       traefik.http.routers.lidarr.middlewares: "default@file"
+
+  mylar:
+    profiles: [ disable ]
+    extends:
+      file: defaults.yaml
+      service: default
+    image: lscr.io/linuxserver/mylar3:latest
+    ports:
+      - 8090:8090
+    volumes:
+      - {{ path_app_config }}/mylar:/config
+      - {{ path_storage }}:/storage
+    networks:
+      - default
+      - external
+    labels:
+      homepage.group: Media
+      homepage.name: Mylar
+      homepage.icon: mylar.png
+      homepage.href: https://mylar.{{ domain }}
+      homepage.description: Comics/Manga manager
+      traefik.enable: "true"
+      traefik.http.routers.mylar.entrypoints: "websecure"
+      traefik.http.routers.mylar.rule: "Host(`mylar.{{ domain }}`)"
+      traefik.http.routers.mylar.middlewares: "default@file"
   
   radarr:
     extends:
