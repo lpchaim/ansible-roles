@@ -230,6 +230,31 @@ services:
       traefik.http.routers.radarr.rule: "Host(`radarr.{{ domain }}`)"
       traefik.http.routers.radarr.middlewares: "default@file"
 
+  readarr:
+    profiles: [ disable ]
+    extends:
+      file: defaults.yaml
+      service: default
+    image: lscr.io/linuxserver/readarr:nightly-0.3.14.2348-ls257
+    ports:
+      - 8787:8787
+    volumes:
+      - {{ path_app_config }}/readarr:/config
+      - {{ path_storage }}:/storage
+    networks:
+      - default
+      - external
+    labels:
+      homepage.group: Media
+      homepage.name: Readarr
+      homepage.icon: readarr.png
+      homepage.href: https://readarr.{{ domain }}
+      homepage.description: Book manager
+      traefik.enable: "false"
+      traefik.http.routers.readarr.entrypoints: "websecure"
+      traefik.http.routers.readarr.rule: "Host(`readarr.{{ domain }}`)"
+      traefik.http.routers.readarr.middlewares: "default@file"
+
   sonarr:
     extends:
       file: defaults.yaml
