@@ -122,6 +122,32 @@ services:
       traefik.http.routers.bazarr.entrypoints: "websecure"
       traefik.http.routers.bazarr.rule: "Host(`bazarr.{{ domain }}`)"
       traefik.http.routers.bazarr.middlewares: "default@file"
+
+  lazylibrarian:
+    extends:
+      file: defaults.yaml
+      service: default
+    image: lscr.io/linuxserver/lazylibrarian:latest
+    environment:
+      - DOCKER_MODS=linuxserver/mods:universal-calibre|linuxserver/mods:lazylibrarian-ffmpeg #optional
+    ports:
+      - 5299:5299
+    volumes:
+      - {{ path_app_config }}/lazylibrarian:/config
+      - {{ path_storage }}:/storage
+    networks:
+      - default
+      - external
+    labels:
+      homepage.group: Media
+      homepage.name: LazyLibrarian
+      homepage.icon: lazylibrarian.png
+      homepage.href: https://lazylibrarian.{{ domain }}
+      homepage.description: Book manager
+      traefik.enable: "true"
+      traefik.http.routers.lazylibrarian.entrypoints: "websecure"
+      traefik.http.routers.lazylibrarian.rule: "Host(`lazylibrarian.{{ domain }}`)"
+      traefik.http.routers.lazylibrarian.middlewares: "default@file"
   
   radarr:
     extends:
