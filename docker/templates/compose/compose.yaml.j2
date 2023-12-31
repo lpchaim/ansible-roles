@@ -148,6 +148,30 @@ services:
       traefik.http.routers.lazylibrarian.entrypoints: "websecure"
       traefik.http.routers.lazylibrarian.rule: "Host(`lazylibrarian.{{ domain }}`)"
       traefik.http.routers.lazylibrarian.middlewares: "default@file"
+
+  lidarr:
+    extends:
+      file: defaults.yaml
+      service: default
+    image: lscr.io/linuxserver/lidarr:2.0.7.3849-ls148
+    ports:
+      - 8686:8686
+    volumes:
+      - {{ path_app_config }}/lidarr:/config
+      - {{ path_storage }}:/storage
+    networks:
+      - default
+      - external
+    labels:
+      homepage.group: Media
+      homepage.name: Lidarr
+      homepage.icon: lidarr.png
+      homepage.href: https://lidarr.{{ domain }}
+      homepage.description: Music manager
+      traefik.enable: "true"
+      traefik.http.routers.lidarr.entrypoints: "websecure"
+      traefik.http.routers.lidarr.rule: "Host(`lidarr.{{ domain }}`)"
+      traefik.http.routers.lidarr.middlewares: "default@file"
   
   radarr:
     extends:
