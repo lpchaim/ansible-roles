@@ -67,6 +67,31 @@ services:
 
   # Media
 
+  audiobookshelf:
+    extends:
+      file: defaults.yaml
+      service: default
+    image: ghcr.io/advplyr/audiobookshelf:2.7.0
+    ports:
+      - 13378:80
+    volumes:
+      - {{ path_app_config }}/audiobookshelf:/config
+      - {{ path_app_data }}/audiobookshelf:/metadata
+      - {{ path_storage }}:/storage
+    networks:
+      - default
+      - external
+    labels:
+      homepage.group: Media
+      homepage.name: Audiobookshelf
+      homepage.icon: audiobookshelf.png
+      homepage.href: https://audiobookshelf.{{ domain }}
+      homepage.description: Audiobook and podcast manager
+      traefik.enable: "true"
+      traefik.http.routers.audiobookshelf.entrypoints: "websecure"
+      traefik.http.routers.audiobookshelf.rule: "Host(`audiobookshelf.{{ domain }}`)"
+      traefik.http.routers.audiobookshelf.middlewares: "default@file"
+
   bazarr:
     extends:
       file: defaults.yaml
