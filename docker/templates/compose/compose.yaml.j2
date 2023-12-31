@@ -269,6 +269,65 @@ services:
       traefik.http.routers.home.entrypoints: "websecure"
       traefik.http.routers.home.rule: "Host(`home.{{ domain }}`)"
       traefik.http.routers.home.middlewares: "default@file"
+  
+  forgejo-server:
+    extends:
+      file: defaults.yaml
+      service: default
+    image: codeberg.org/forgejo/forgejo:1.20
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      FORGEJO__actions__ENABLED: "true"
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: forgejo-db:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__USER: forgejo
+      FORGEJO__database__PASSWD: "{{ secret_forgejo_db_password }}"
+      FORGEJO__mailer__ENABLED: "true"
+      FORGEJO__mailer__FROM: "forgejo@{{ domain }}"
+      FORGEJO__mailer__PROTOCOL: starttls
+      FORGEJO__mailer__SMTP_ADDR: "{{ secret_smtp_host }}"
+      FORGEJO__mailer__SMTP_PORT: "{{ secret_smtp_port }}"
+      FORGEJO__mailer__USER: "{{ secret_smtp_user }}"
+      FORGEJO__mailer__PASSWD: "{{ secret_smtp_password }}"
+      FORGEJO__service__DISABLE_REGISTRATION: "true"
+      FORGEJO__service__REGISTER_MANUAL_CONFIRM: "true"
+    networks:
+      - default
+      - external
+    ports:
+      - "3001:3000"
+      - "222:22"
+    volumes:
+      - {{ path_app_data }}/forgejo-server:/data
+    labels:
+      homepage.group: Other
+      homepage.name: Forgejo
+      homepage.icon: forgejo.png
+      homepage.href: https://git.{{ domain }}
+      homepage.description: Code forge
+      traefik.enable: "true"
+      traefik.http.routers.git.entrypoints: "websecure"
+      traefik.http.routers.git.rule: "Host(`git.{{ domain }}`)"
+      traefik.http.routers.git.middlewares: "default@file"
+      traefik.http.services.git.loadbalancer.server.port: "3000"
+    depends_on:
+      - forgejo-db
+
+  forgejo-db:
+    extends:
+      file: defaults.yaml
+      service: default
+    image: postgres:14
+    environment:
+      POSTGRES_USER: forgejo
+      POSTGRES_PASSWORD: "{{ secret_forgejo_db_password }}"
+      POSTGRES_DB: forgejo
+    networks:
+      - default
+    volumes:
+      - {{ path_app_data }}/forgejo-postgres:/var/lib/postgresql/data
 
   influxdb:
     extends:
