@@ -284,39 +284,41 @@ services:
       - {{ path_app_config }}/influxdb:/etc/influxdb2
       - {{ path_app_data }}/influxdb:/var/lib/influxdb2
 
-  # jackett:
-  #   extends:
-  #     file: defaults.yaml
-  #     service: default
-  #   image: lscr.io/linuxserver/jackett
-  #   networks:
-  #     - name: default
-  #     - name: external
-  #   ports:
-  #     - 9117:9117
-  #   volumes:
-  #     - {{ path_app_config }}/jackett:/config
-  #     - {{ path_storage }}:/storage
+  jackett:
+    profiles: [ disable ]
+    extends:
+      file: defaults.yaml
+      service: default
+    image: lscr.io/linuxserver/jackett
+    networks:
+      - default
+      - external
+    ports:
+      - 9117:9117
+    volumes:
+      - {{ path_app_config }}/jackett:/config
+      - {{ path_storage }}:/storage
 
-  # jellyfin:
-  #  extends:
-  #    file: defaults.yaml
-  #    service: default
-  #  image: lscr.io/linuxserver/jellyfin
-  #  environment:
-  #    DOCKER_MODS: "linuxserver/mods:jellyfin-opencl-intel"
-  #  networks:
-  #    - name: default
-  #    - name: external
-  #  ports:
-  #    - 8096:8096
-  #    - 7359:7359
-  #    - 1900:1900
-  #  volumes:
-  #    - "{{ path_app_config }}/jellyfin:/config"
-  #    - "{{ path_storage }}:/data"
-  #  devices:
-  #    - "/dev/dri:/dev/dri"
+  jellyfin:
+    profiles: [ disable ]
+    extends:
+      file: defaults.yaml
+      service: default
+    image: lscr.io/linuxserver/jellyfin
+    environment:
+      DOCKER_MODS: "linuxserver/mods:jellyfin-opencl-intel"
+    networks:
+      - default
+      - external
+    ports:
+      - 8096:8096
+      - 7359:7359
+      - 1900:1900
+    volumes:
+      - "{{ path_app_config }}/jellyfin:/config"
+      - "{{ path_storage }}:/data"
+    devices:
+      - "/dev/dri:/dev/dri"
 
   qbittorrent:
     extends:
